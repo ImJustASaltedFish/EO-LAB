@@ -5,3 +5,4 @@ import './optics/gaussian-ray.test.js';
 import './optics/iris.test.js';
 import './optics/noise.test.js';
 import './optics/pinhole.test.js';
+import './optics/screen.test.js';
