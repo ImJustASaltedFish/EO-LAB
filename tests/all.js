@@ -11,3 +11,4 @@ import './optics/bench.test.js';
 import './lab/steps.test.js';
 import './i18n.test.js';
 import './scene/scene.test.js';
+import './scene/beam-interact.test.js';
