@@ -15,3 +15,4 @@ import './scene/beam-interact.test.js';
 import './ui/controls.test.js';
 import './ui/insets.test.js';
 import './ui/panel.test.js';
+import './app.test.js';
