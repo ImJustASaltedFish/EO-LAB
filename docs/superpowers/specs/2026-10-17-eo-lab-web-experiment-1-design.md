@@ -35,7 +35,7 @@ Michelson, Mach–Zehnder, Part B of the handout (cleaning optics), VR/WebXR, ac
 - Desktop and laptop: current Chrome, Edge, Firefox and Safari (ES modules, import maps, WebGL 2).
 - Tablets and phones with touch. Landscape recommended; portrait works with the side panel collapsed.
 - WebGL 2 is required (three.js). Without it the page shows a clear message (zh/en) instead of the lab.
-- The site must be served over http(s): GitHub Pages or any static host, or locally with `python -m http.server`. Opening the HTML file from disk is not supported because browsers block ES modules on `file://`; the README says so.
+- The site must be served over http(s): GitHub Pages or any static host, or locally with `python tools/serve.py` (which always sends `.js` as JavaScript; `python -m http.server` works where the machine already does). Opening the HTML file from disk is not supported because browsers block ES modules on `file://`; the README says so.
 - No external network requests at runtime: no CDN, no web fonts, no analytics.
 
 ## 3. Student experience
@@ -64,7 +64,7 @@ Michelson, Mach–Zehnder, Part B of the handout (cleaning optics), VR/WebXR, ac
 
 Bench coordinates: **z** along the rail from the laser exit (z = 0) toward the far end; **y** = height above the table; **x** horizontal, positive to the right when looking along +z. All parts sit on the rail centreline (x = 0); only the knobs listed below move optics sideways.
 
-- Breadboard 1200 × 600 mm with a 25 mm hole grid, one straight rail along it, and a beam block at the far end (z = 1150 mm) that stops the beam when nothing else does.
+- Breadboard 1400 × 600 mm (z from −200 to 1200 mm, so the laser body fits behind z = 0) with a 25 mm hole grid, one straight rail along it, and a beam block at the far end (z = 1150 mm) that stops the beam when nothing else does.
 - A **parts rack** along the back edge of the table holds parts that are not on the rail (the VR 「component wall」). Parts not needed yet are locked, with a tooltip naming the step that uses them.
 
 | Part (zh / en) | On the rail | Adjustable | Range / steps |
@@ -127,7 +127,7 @@ Each run starts with a random, always-solvable misalignment (§4.1). Steps unloc
 - Hints: (1) look at Aperture 2: which way is the expanded beam off? (2) use objective X/Y to bring it back to the centre; (3) look at plane A: the rings must be concentric with the hole; (4) sweep the focus knob to confirm both, then wind it out fully.
 
 **步驟3 25 µm 針孔 — Step 3: pinhole** (§4A(3), Fig. 1-4 (3))
-- Do: install the 25 µm pinhole and bring the screen close. Slowly bring the objective in with the focus knob, adjusting the pinhole X/Y knobs to keep the screen as bright as possible. Airy rings mean you are close; continue with small moves until a clean, bright, round spot (a spherical wave) appears. Finally open Aperture 2 — it will set the size of the expanded beam.
+- Do: install the 25 µm pinhole, then pick up the screen and put it close after the mount, in front of Aperture 2 (Fig. 1-4 (3)). Slowly bring the objective in with the focus knob, adjusting the pinhole X/Y knobs to keep the screen as bright as possible. Airy rings mean you are close; continue with small moves until a clean, bright, round spot (a spherical wave) appears. Finally open Aperture 2 — it will set the size of the expanded beam.
 - Checks:
   1. Pinhole installed.
   2. Pinhole transmission T_ph ≥ 97 % (§4.4).
@@ -245,7 +245,7 @@ Transverse positions are in the rail frame. Mount axis r_m; objective axis r_o =
 
 1. **Input at the objective:** a Gaussian of radius W (from §4.3), centred at offset u = r_beam − r_o, travelling at angle α (beam angle; the objective axis is parallel to the rail). Plus dust noise: K copies of the beam tilted by λν_k with complex amplitudes c_k. The noise pattern is treated as fixed on the beam; noise components are not propagated separately before the objective.
 2. **Focal plane:** the main beam focuses to a Gaussian waist w_0 = λf_0/(πW) at ξ_c = r_o + f_0·α, its axis tilted by −u/f_0. Noise component k focuses to the same spot shifted by λf_0·ν_k (at least 19 µm, so a centred pinhole at focus blocks it).
-3. **Pinhole plane** (Δz after the waist): every component is the analytic Gaussian beam at distance Δz from its waist — radius w(Δz) = w_0·√(1 + (Δz/z_R0)²), curvature R(Δz) = Δz·(1 + (z_R0/Δz)²), centre moved by −(u/f_0)·Δz, plus its linear tilt phase. Field E_p(ξ) = main + Σ noise.
+3. **Pinhole plane** (Δz after the waist): every component is the analytic Gaussian beam at distance Δz from its waist — radius w(Δz) = w_0·√(1 + (Δz/z_R0)²), curvature R(Δz) = Δz·(1 + (z_R0/Δz)²), centre moved by (α − u/f_0)·Δz (its direction of travel after the objective; noise copies add λν_k), plus its linear tilt phase. Field E_p(ξ) = main + Σ noise.
 4. **Mask and far field:** sample E_p on a 48 × 48 grid covering the pinhole (0.52 µm spacing), zero outside |ξ − r_p| ≤ a. Far field I_ff(θ) = |Σ E_p(ξ)·exp(−ik θ·ξ)|² on a 192 × 192 grid of angles spanning ±0.167 rad (3 × W/f_0), computed as a separable matrix DFT.
 5. **Transmission:** T_ph = main-beam power inside the pinhole ÷ total main-beam power (normalised analytically). Noise power through the pinhole is computed the same way.
 6. **No pinhole installed** (step 2b): the screen shows the magnified raw beam, I(x_s) = |E_in(−x_s·f_0/(z_s − z_focus))|² including the noise, centred on the ray.
@@ -264,7 +264,7 @@ A 256 × 256 image over a square window 2.5 × the expected beam diameter at the
 - **No objective:** the raw beam (Gaussian with noise) at the screen plane, centred on the ray, radius from §4.3.
 - **Objective, no pinhole:** §4.4 item 6.
 - **Pinhole, no lens:** x_s = r_p + θ·(z_s − z_ph); I_s = I_ff(θ)/(z_s − z_ph)².
-- **With the lens** (axis c_L, L = z_L − z_ph, D = z_s − z_L): x_s = A·θ + B with A = L + D·(1 − L/f_e) and B = r_p − D·(r_p − c_L)/f_e; I_s = I_ff(θ)/A². If |A|·θ_e is smaller than twice the Gaussian radius from §4.3 at the screen (the screen is near a focus), the Gaussian spot from §4.3 is drawn instead.
+- **With the lens** (axis c_L, L = z_L − z_ph, D = z_s − z_L): x_s = A·θ + B with A = L + D·(1 − L/f_e) and B = r_p − D·(r_p − c_L)/f_e; I_s = I_ff(θ)/A². If |A|·θ_e is smaller than half the Gaussian radius from §4.3 at the screen (the screen is near a focus, where diffraction dominates), the Gaussian spot from §4.3 is drawn instead.
 - **Masks:** every iris between the pinhole and the screen removes the angles whose rays miss its hole; the lens removes rays outside its clear aperture.
 - **Display:** fixed exposure with a log tone curve, v = log10(1 + k·I/I_ref) / log10(1 + k), k = 1000, where I_ref is the peak intensity a perfectly aligned beam would give at the same screen position. Colour: green, rolling off toward white near saturation. Faint patterns stay visible, and brighter really means brighter.
 
@@ -277,7 +277,7 @@ A 256 × 256 image over a square window 2.5 × the expected beam diameter at the
 
 - Transmission of a Gaussian (radius w, centre offset s) through a hole of radius r: T = ∫₀ʳ (4ρ/w²)·exp(−2(ρ² + s²)/w²)·I₀(4ρs/w²) dρ, evaluated with 64-point Gauss–Legendre quadrature and the exponentially scaled Bessel I₀ (Abramowitz & Stegun 9.8.1–9.8.2).
 - After the objective without the pinhole, the expanded beam is treated as a Gaussian for iris transmission; after the pinhole, transmission is the masked fraction of I_ff.
-- If T < 1 % the beam is drawn as stopped at that iris. The beam also stops on the mount plate if it misses the 4 mm ring, and at the beam block if nothing else stops it.
+- If T < 1 % the beam is drawn as stopped at that iris. The beam also stops on the mount plate if it misses the 4 mm ring, and at the beam block if nothing else stops it. The pinhole only stops the beam below T = 10⁻⁵, so the faint Airy pattern far from focus (T ≈ 0.4 %) stays visible.
 - Clipping by an iris loses power but adds no diffraction rings; only the pinhole does (a stated simplification).
 
 ### 4.8 Plane A (back-reflections)
@@ -297,41 +297,47 @@ eo-lab-web/
   index.html            lobby
   laser.html            Experiment 1
   css/style.css
+  tools/
+    serve.py            local static server with correct JS MIME types
+    run_tests.py        runs tests/index.html in headless Edge/Chrome, prints PASS/FAIL
   js/
-    vendor/             three.module.min.js, OrbitControls.js
+    app.js              input → state → bench() → scene + insets + panel + step checks
+    lobby.js            lobby page script
+    vendor/             three.module.min.js, addons/controls/OrbitControls.js, LICENSE-three.txt
     i18n/
-      index.js          t(key), current language, switching
+      index.js          t(key), current language, switching, applyTranslations
       zh-TW.js          all zh strings: steps, hints, warnings, questions, UI
       en.js             all en strings (same keys)
     optics/             pure physics: no DOM, no three.js
       config.js         every constant and tolerance in this spec
       rng.js            seeded random generator
+      complex.js        complex arithmetic
       ray.js            beam-centre ray (§4.2)
       gaussian.js       q-parameter propagation (§4.3)
       iris.js           Gaussian-through-hole transmission (§4.7)
+      noise.js          fixed dust noise on the beam (§4.1, §4.4)
       pinhole.js        pinhole field → far field + transmission (§4.4)
-      screen.js         screen image (§4.5)
+      screen.js         screen samplers and image (§4.5), tone map and display colours
       bench.js          bench(state) → BenchResult
     lab/                pure logic: no DOM, no three.js
       state.js          createInitialState(seed), state updates
       steps.js          STEPS: checks, hints, warnings, question keys (§3.5–3.6)
     scene/              three.js
+      webgl.js          WebGL 2 detection without three.js
       view.js           renderer, camera, presets, resize
       models.js         table, rail, rack, laser, irises, mount, lens, screen
       beam.js           glowing beam segments and surface spots
       interact.js       picking, dragging along the rail, rack placement
     ui/
       panel.js          step card, checklist, hints, think cards, readouts
-      controls.js       knob dials, sliders, ± buttons
+      controls.js       knob dials, sliders, ± buttons, position inputs
       insets.js         2D close-ups with mm scales
       toast.js          warnings
-    app.js              input → state → bench() → scene + insets + panel + step checks
   tests/
-    index.html          browser test runner (tiny built-in assertion helper)
-    optics.test.js
-    steps.test.js
-    i18n.test.js
-  docs/superpowers/specs/2026-10-17-eo-lab-web-experiment-1-design.md
+    index.html, harness.js, all.js, fixtures.js
+    optics/, lab/, scene/, ui/   one test file per module
+    i18n.test.js, app.test.js, lobby.test.js
+  docs/superpowers/specs/…, docs/superpowers/plans/…
   README.md
 ```
 
@@ -368,7 +374,7 @@ eo-lab-web/
 
 **i18n test** (`tests/i18n.test.js`): zh-TW and en have exactly the same keys, and no value is empty.
 
-**Runner:** `tests/index.html` loads the test modules and lists pass / fail. It is opened through `python -m http.server` (Claude runs it in the built-in browser).
+**Runner:** `tests/index.html` loads the test modules and lists pass / fail. `python tools/run_tests.py` serves the folder on a free local port, opens the page in headless Edge (or Chrome) and prints the results; exit code 0 only when nothing fails. Headless runs use virtual time, so speed is checked by hand in a real browser.
 
 **Manual checks:** complete Experiment 1 end to end in zh and en, at desktop size and at phone size (touch emulation); the warnings appear when provoked; no console errors; a knob turn redraws in under 50 ms on desktop.
 
