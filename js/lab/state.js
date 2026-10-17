@@ -28,7 +28,7 @@ export function createInitialState(seed) {
       objectiveOffset: null,
       pinholeOffset: null,
     },
-    stats: { screenTravel: 0 },
+    stats: { screenTravel: 0, testTravel: 0 },
   };
 }
 
@@ -112,7 +112,13 @@ export function placePart(state, id, z) {
   if (!isFree(state, id, target)) return state;
   const next = structuredClone(state);
   const part = next.parts[id];
-  if (id === 'screen' && part.onRail) next.stats.screenTravel += Math.abs(target - part.z);
+  if (id === 'screen' && part.onRail) {
+    const moved = Math.abs(target - part.z);
+    next.stats.screenTravel += moved;
+    // Only moves behind a lens that is on the rail test collimation (step 4).
+    const lens = next.parts.lens;
+    if (lens.onRail && part.z > lens.z && target > lens.z) next.stats.testTravel += moved;
+  }
   part.onRail = true;
   part.z = target;
   return next;

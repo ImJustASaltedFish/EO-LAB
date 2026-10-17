@@ -16,3 +16,4 @@ import './ui/controls.test.js';
 import './ui/insets.test.js';
 import './ui/panel.test.js';
 import './app.test.js';
+import './lobby.test.js';

@@ -112,7 +112,7 @@ export const STEPS = Object.freeze([
           return e >= C.s4.extentMin && e <= C.s4.extentMax;
         },
       },
-      { id: 'tested', test: (s, r, flow) => s.stats.screenTravel - flow.stepStart.screenTravel >= C.s4.screenTravelMin },
+      { id: 'tested', test: (s, r, flow) => s.stats.testTravel - flow.stepStart.testTravel >= C.s4.screenTravelMin },
       {
         id: 'collimated',
         test: (s, r) => s.parts.screen.onRail && s.parts.lens.onRail && s.parts.screen.z > s.parts.lens.z
@@ -128,7 +128,7 @@ export const STEPS = Object.freeze([
 export const STEP_LABELS = Object.freeze({ start: 'start', s1: '1', s2a: '2a', s2b: '2b', s3: '3', s4: '4', done: 'done' });
 
 export function createFlow() {
-  return { index: 0, stepStart: { screenTravel: 0, time: 0 }, hintsShown: 0, warningsShown: 0, active: {} };
+  return { index: 0, stepStart: { screenTravel: 0, testTravel: 0, time: 0 }, hintsShown: 0, warningsShown: 0, active: {} };
 }
 
 export const currentStep = (flow) => STEPS[flow.index];
@@ -145,7 +145,7 @@ export function advance(flow, state, now = 0) {
   return {
     ...flow,
     index: Math.min(STEPS.length - 1, flow.index + 1),
-    stepStart: { screenTravel: state.stats.screenTravel, time: now },
+    stepStart: { screenTravel: state.stats.screenTravel, testTravel: state.stats.testTravel, time: now },
     hintsShown: 0,
     active: {},
   };

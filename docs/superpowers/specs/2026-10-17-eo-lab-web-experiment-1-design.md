@@ -53,7 +53,7 @@ Michelson, Mach–Zehnder, Part B of the handout (cleaning optics), VR/WebXR, ac
 
 - **3D bench** fills the page.
 - **Top bar:** back to lobby; step progress 開始 · 1 · 2a · 2b · 3 · 4 · 完成; 中 / EN switch; 重新開始 Restart (new random start, asks for confirmation).
-- **Side panel** — on the right, 360 px wide; below 768 px viewport width it becomes a bottom sheet with collapsed / half / full states:
+- **Side panel** — on the right, 360 px wide; below 768 px viewport width it becomes a bottom sheet with collapsed / half / full states, and the 3D view ends where the sheet starts:
   - **Step card:** title, instructions, live checklist (✓ / ✗ always with text), 提示 Hint button (reveals the step's hints one at a time), 下一步 Next button (enabled only when every check passes), and 思考題 cards for the handout questions tied to this step. Questions are paraphrased and shown **without answers** — they are report questions.
   - **Controls** for the current step. Controls from earlier steps stay available in a collapsed 「其他控制 / More controls」 group.
   - **Readouts** (§3.7).
@@ -82,7 +82,7 @@ Rules:
 
 ### 3.4 Interaction
 
-- **Camera:** orbit (left-drag / one finger), pan (right-drag / two fingers), zoom (wheel / pinch); the camera cannot go below the table. Presets: 全景 Overview, 雷射端 Laser end, 空間濾波器 Spatial filter, 屏幕 Screen.
+- **Camera:** orbit (left-drag / one finger), pan (right-drag / two fingers), zoom (wheel / pinch); the camera cannot go below the table. Presets: 全景 Overview, 雷射端 Laser end, 空間濾波器 Spatial filter, 屏幕 Screen. Presets back the camera off until their part of the bench fits across the view; in a view taller than wide, the overview looks down the rail from behind the laser.
 - **Placing:** drag a part from the rack onto the rail. It snaps to the rail line and follows the pointer along z on a 1 mm grid; release to place. Alternatives: tap a rack part (it highlights) and then tap a point on the rail; or press the part's 放上光軌 Place on rail button (puts it in the first free spot; keyboard accessible).
 - **Moving:** drag a placed part along the rail, or use its ± buttons (fine / coarse).
 - **Knobs:** dial widgets in the panel — drag to turn, or −/+ buttons with a fine / coarse toggle; holding a button repeats; arrow keys work on a focused control. The matching 3D knob turns too.
@@ -141,7 +141,7 @@ Each run starts with a random, always-solvable misalignment (§4.1). Steps unloc
   1. Aperture 2 off the rail; Aperture 1 between the pinhole and the lens; nothing between the laser and the objective.
   2. Lens centred: beam centre within 0.5 mm of the lens axis.
   3. Beam extent at the lens between 10.0 and 22.9 mm, where the extent is the smaller of 1.5 × the beam's 1/e² diameter and the iris hole projected from the pinhole. (Without the iris the extent is ≈ 33 mm, so the iris must trim the beam.)
-  4. Screen moved a total of ≥ 200 mm during this step (the collimation test).
+  4. Screen moved a total of ≥ 200 mm during this step behind the lens, with the lens on the rail (the collimation test; moving the screen out of the way before the lens is placed does not count).
   5. Beam collimated (§4.6).
 - Think cards: questions (2) two ways to make the collimated beam 1.5× wider; (6, challenge) when an Airy pattern can be seen during step 4.
 - Hints: (1) Aperture 2 off; Aperture 1 between the pinhole and the lens; (2) the lens goes about 200 mm from the pinhole; (3) open the iris so the beam is smaller than the lens; (4) move the screen: a growing spot means the lens is too close (diverging), a shrinking spot means too far (converging).
@@ -172,7 +172,7 @@ English versions live in `en.js`.
 
 ### 3.8 Close-up insets
 
-- **Aperture face (1, 2):** iris blades, the hole at the current opening, and the beam's light falling on the blades wherever it misses the hole — the view students use in the lab.
+- **Aperture face (1, 2):** iris blades, the hole at the current opening, and the beam's light falling on the blades wherever it misses the hole — the view students use in the lab. Brightness uses a square-root curve (not the screen's log curve), so when the expanded beam overfills the plate in step 2b its brightest part still shows where its centre is.
 - **Plane A (back face of Aperture 1):** the objective's reflection rings and the hole, after the objective is installed.
 - **Spatial-filter ring:** the mount's front ring with the beam spot (step 2a).
 - **Screen:** the computed screen image (§4.5) with a mm ruler and the step-2a mark.

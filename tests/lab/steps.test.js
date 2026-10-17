@@ -58,6 +58,16 @@ test('steps: step 4 passes when collimated and fails while Aperture 2 is on the 
   assert(!F.canAdvance(flow, withA2, bench(withA2)), 'Aperture 2 still on the rail');
 });
 
+test('steps: moving the screen before the lens is in place is not a collimation test', () => {
+  let s = fullyAligned();
+  s = S.removePart(s, 'lens');
+  s = S.placePart(s, 'screen', 0.700);
+  s = S.placePart(s, 'screen', 1.000);
+  s = S.placePart(s, 'lens', 0.450);
+  const tested = F.evaluateChecks(flowAt('s4'), s, bench(s)).find((c) => c.id === 'tested');
+  assert(!tested.pass, 'screen travel before the lens was placed must not count');
+});
+
 test('steps: parts unlock in handout order', () => {
   assert(!F.isPartUnlocked(flowAt('start'), 'a1'), 'nothing before step 1');
   assert(F.isPartUnlocked(flowAt('s1'), 'a1') && !F.isPartUnlocked(flowAt('s1'), 'sf'), 'irises in step 1');

@@ -1,5 +1,5 @@
 // 2D close-ups drawn on <canvas>: iris faces, the spatial-filter ring, plane A and the screen (spec §3.8).
-import { toneMap, beamColour, cardPixel } from '../optics/screen.js';
+import { beamColour, cardPixel } from '../optics/screen.js';
 
 export function niceStep(spanMm) {
   const raw = spanMm / 6;
@@ -29,10 +29,12 @@ function drawMessage(ctx, width, height, message) {
 }
 
 // An iris or ring face: plate, hole and the beam's light where it lands (metres, relative to the hole centre).
+// Brightness uses a square-root curve rather than the screen's log curve, so the brightest part of a beam that
+// overfills the plate (the expanded beam in step 2b) still shows where its centre is.
 export function drawApertureInset(canvas, { r, outer, beam }) {
   const ctx = canvas.getContext('2d');
   const { width, height } = canvas;
-  const half = viewHalf(2.5 * r, beam ? 1.6 * (Math.hypot(beam.dx, beam.dy) + beam.radius) : 0);
+  const half = Math.min(0.04, Math.max(0.003, 2.5 * r, beam ? 1.6 * (Math.hypot(beam.dx, beam.dy) + beam.radius) : 0));
   const scale = width / (2 * half);
   const image = ctx.createImageData(width, height);
   for (let j = 0; j < height; j++) {
@@ -49,7 +51,7 @@ export function drawApertureInset(canvas, { r, outer, beam }) {
         if (rho <= r) light *= 0.25;          // light going through the hole barely shows on this face
         else if (rho > outer) light *= 0.1;
       }
-      const [lr, lg, lb] = beamColour(toneMap(light));
+      const [lr, lg, lb] = beamColour(Math.sqrt(Math.min(1, light)));
       const k = 4 * (j * width + i);
       image.data[k] = Math.min(255, base[0] + lr);
       image.data[k + 1] = Math.min(255, base[1] + lg);

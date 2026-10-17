@@ -6,7 +6,7 @@ import { cardPixel } from '../optics/screen.js';
 const standard = (options) => new THREE.MeshStandardMaterial(options);
 
 const SHARED = {
-  table: standard({ color: 0x2a2d33, roughness: 0.85, metalness: 0.1 }),
+  table: standard({ color: 0x1d2025, roughness: 0.85, metalness: 0.1 }),
   hole: new THREE.MeshBasicMaterial({ color: 0x0b0c0e }),
   rail: standard({ color: 0x3b3f47, roughness: 0.6, metalness: 0.5 }),
   tick: new THREE.MeshBasicMaterial({ color: 0x9aa0aa }),

@@ -146,7 +146,9 @@ export function createSlider({ label, unit = '', value, min, max, step, format =
   input.step = String(step);
   input.value = String(value);
   function render() {
-    el.querySelector('.control-label').textContent = textOf(label);
+    const text = textOf(label);
+    el.querySelector('.control-label').textContent = text;
+    input.setAttribute('aria-label', text);
     el.querySelector('.control-value').textContent = `${format(Number(input.value))} ${unit}`.trim();
   }
   input.addEventListener('input', () => {

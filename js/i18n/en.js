@@ -132,7 +132,7 @@ export default {
   'step.s4.check.layout': 'Aperture 2 removed; Aperture 1 between pinhole and lens',
   'step.s4.check.lensCentred': 'Lens centred (≤ 0.5 mm)',
   'step.s4.check.extent': 'Beam at the lens 10–22.9 mm across',
-  'step.s4.check.tested': 'Screen moved back and forth at least 200 mm',
+  'step.s4.check.tested': 'Screen moved back and forth behind the lens, at least 200 mm',
   'step.s4.check.collimated': 'Beam collimated (screen after the lens)',
   'step.s4.hint.1': 'Take Aperture 2 off and move Aperture 1 between the pinhole and the lens.',
   'step.s4.hint.2': 'Put the lens about 200 mm from the pinhole.',

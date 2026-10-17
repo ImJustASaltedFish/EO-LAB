@@ -54,6 +54,7 @@ test('controls: slider and button report changes', () => {
   input.dispatchEvent(new Event('input', { bubbles: true }));
   assertClose(got, 0.005, 1e-12);
   assertEqual(slider.el.querySelector('.control-value').textContent, '5.0 mm');
+  assertEqual(input.getAttribute('aria-label'), 'Opening', 'the range input has an accessible name');
   const button = createButton({ label: 'Go', onClick: () => { clicks += 1; } });
   sandbox().appendChild(button.el);
   button.el.click();

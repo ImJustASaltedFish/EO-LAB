@@ -22,6 +22,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         ".svg": "image/svg+xml",
     }
 
+    def end_headers(self):
+        # Always revalidate, so edited files show up on the next reload.
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
 
 def main():
     parser = argparse.ArgumentParser()

@@ -70,6 +70,18 @@ test('state: installing the objective and pinhole draws offsets within range', (
   assertEqual(S.installPinhole(S.createInitialState(9), focus).parts.sf.pinhole, false, 'pinhole needs the objective');
 });
 
+test('state: only screen moves behind a placed lens count as collimation testing', () => {
+  let s = S.createInitialState(1);
+  s = S.placePart(s, 'screen', 0.9);
+  s = S.placePart(s, 'screen', 1.0);
+  assertClose(s.stats.testTravel, 0, 0, 'no lens on the rail yet');
+  s = S.placePart(s, 'lens', 0.45);
+  s = S.placePart(s, 'screen', 0.7);
+  s = S.placePart(s, 'screen', 1.0);
+  assertClose(s.stats.testTravel, 0.6, 1e-9);
+  assertClose(s.stats.screenTravel, 0.7, 1e-9);
+});
+
 test('state: marking the screen stores the spot relative to the card centre', () => {
   const s = S.markScreen(S.createInitialState(1), { x: 1e-3, y: CONFIG.screen.centreHeight + 2e-3 });
   assertClose(s.parts.screen.mark.x, 1e-3, 1e-12);

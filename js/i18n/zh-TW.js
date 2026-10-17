@@ -132,7 +132,7 @@ export default {
   'step.s4.check.layout': '光圈2 已拿下；光圈1 在針孔與透鏡之間',
   'step.s4.check.lensCentred': '透鏡置中（≤ 0.5 mm）',
   'step.s4.check.extent': '到達透鏡的光斑 10–22.9 mm',
-  'step.s4.check.tested': '屏幕已前後移動至少 200 mm',
+  'step.s4.check.tested': '透鏡之後的屏幕已前後移動至少 200 mm',
   'step.s4.check.collimated': '光束準直（屏幕在透鏡之後）',
   'step.s4.hint.1': '把光圈2拿下，光圈1移到針孔和透鏡之間。',
   'step.s4.hint.2': '透鏡放在距離針孔約 200 mm 處。',
