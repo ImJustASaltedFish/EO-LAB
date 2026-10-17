@@ -7,3 +7,4 @@ import './optics/noise.test.js';
 import './optics/pinhole.test.js';
 import './optics/screen.test.js';
 import './lab/state.test.js';
+import './optics/bench.test.js';
