@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EO LAB tests</title>
+  <script type="importmap">
+    { "imports": { "three": "../js/vendor/three.module.min.js", "three/addons/": "../js/vendor/addons/" } }
+  </script>
+</head>
+<body>
+  <h1>EO LAB tests</h1>
+  <pre id="results">running…</pre>
+  <div id="sandbox"></div>
+  <script type="module">
+    import { run, reportFatal } from './harness.js';
+    try {
+      await import('./all.js');
+    } catch (error) {
+      reportFatal(error);
+    }
+    await run({ filter: new URLSearchParams(location.search).get('filter') ?? '' });
+  </script>
+</body>
+</html>
