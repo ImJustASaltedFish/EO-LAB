@@ -183,6 +183,8 @@ The 3D screen card uses the same image as its texture.
 
 A calm, realistic lab: dark breadboard with a hole grid, black anodised mounts, satin posts, slightly tinted glass, a white screen card, soft lighting, no clutter. The beam is a soft glowing green tube whose radius is the larger of its real 1/e² radius and a small visibility minimum, and whose brightness follows its intensity; light spots appear where the beam meets surfaces. Panel UI: clean and high-contrast, system fonts (zh: PingFang TC, Microsoft JhengHei, Noto Sans TC).
 
+Parts follow the lab's hardware: the spatial filter is a base block on one post centred underneath, a front plate with a bore that slides with the focus micrometer and carries the objective, and a rear plate holding the pinhole with knurled X/Y knobs on brass collars (top = vertical, side = horizontal); the irises are post-mounted iris diaphragms (round housing, blade disc) whose pin points straight up when open and swings 45° to the side as they close.
+
 ### 3.10 Glossary (UI terms)
 
 | 中文 | English |

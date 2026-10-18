@@ -3,6 +3,7 @@ import { webglAvailable } from '../../js/scene/webgl.js';
 import { createView } from '../../js/scene/view.js';
 import { buildBench, createPartModel, rackSlot } from '../../js/scene/models.js';
 import { createInitialState, PART_IDS } from '../../js/lab/state.js';
+import { CONFIG } from '../../js/optics/config.js';
 
 test('scene: WebGL 2 is available in the test browser', () => {
   assert(webglAvailable(), 'webgl2 missing');
@@ -29,6 +30,23 @@ test('scene: bench and every part model build and render', () => {
   assert(view.renderer.info.render.calls > 10, `draw calls ${view.renderer.info.render.calls}`);
   view.dispose();
   host.remove();
+});
+
+test('scene: the spatial filter post is centred under its base; the iris pin swings with the opening', () => {
+  const parts = createInitialState(1).parts;
+  const sf = createPartModel('sf');
+  sf.update({ ...parts.sf, objective: true, pinhole: true }, {});
+  const base = sf.group.getObjectByName('base');
+  const post = sf.group.getObjectByName('post');
+  assertClose(post.position.x, base.position.x, 1e-9, 'post under the middle of the base, along the beam');
+  assertClose(post.position.z, base.position.z, 1e-9, 'post under the middle of the base, across the beam');
+  const iris = createPartModel('a1');
+  const pin = iris.group.getObjectByName('pin');
+  const angle = () => Math.atan2(pin.position.y - parts.a1.height, pin.position.z);
+  iris.update({ ...parts.a1, opening: CONFIG.iris.openingMax }, {});
+  assertClose(angle(), Math.PI / 2, 1e-6, 'fully open: the pin points straight up');
+  iris.update({ ...parts.a1, opening: CONFIG.iris.openingMin }, {});
+  assertClose(angle(), Math.PI / 4, 1e-6, 'closed: the pin has swung 45° to the side');
 });
 
 test('scene: camera presets adapt to the shape of the 3D view', () => {
