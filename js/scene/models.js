@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { CONFIG } from '../optics/config.js';
 import { cardPixel } from '../optics/screen.js';
+import { drawTarget } from '../ui/target.js';
 
 const standard = (options) => new THREE.MeshStandardMaterial(options);
 
@@ -314,31 +315,47 @@ function buildLens() {
   };
 }
 
-function paintCard(data, pixels, image) {
-  for (let j = 0; j < pixels; j++) {
-    const row = pixels - 1 - j;   // texture row 0 is the bottom; image row 0 is the top
-    for (let i = 0; i < pixels; i++) {
-      const [r, g, b] = cardPixel(image ? image[row * pixels + i] : 0);
-      const k = 4 * (j * pixels + i);
-      data[k] = r;
-      data[k + 1] = g;
-      data[k + 2] = b;
-      data[k + 3] = 255;
-    }
+// The card texture: the computed light over the whole card (image row 0 is the top), upscaled, with the target
+// paper printed over it.
+function paintCard(ctx, light, image, target) {
+  const { size, centreHeight, cardPixels } = CONFIG.screen;
+  const lightCtx = light.getContext('2d');
+  const data = lightCtx.createImageData(cardPixels, cardPixels);
+  for (let i = 0; i < cardPixels * cardPixels; i++) {
+    const [r, g, b] = cardPixel(image ? image[i] : 0);
+    data.data[4 * i] = r;
+    data.data[4 * i + 1] = g;
+    data.data[4 * i + 2] = b;
+    data.data[4 * i + 3] = 255;
   }
+  lightCtx.putImageData(data, 0, 0);
+  const { width } = ctx.canvas;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(light, 0, 0, width, width);
+  drawTarget(ctx, { centre: target, left: -size / 2, top: centreHeight + size / 2, scale: width / size, lineWidth: 1.5, font: 11 });
 }
 
 function buildScreen() {
   const materials = partMaterials();
   const group = new THREE.Group();
-  const { size, centreHeight, cardPixels } = CONFIG.screen;
-  const data = new Uint8Array(cardPixels * cardPixels * 4);
-  paintCard(data, cardPixels, null);
-  const texture = new THREE.DataTexture(data, cardPixels, cardPixels, THREE.RGBAFormat);
+  const { size, centreHeight, cardPixels, cardTexture } = CONFIG.screen;
+  const canvas = document.createElement('canvas');
+  canvas.width = cardTexture;
+  canvas.height = cardTexture;
+  const light = document.createElement('canvas');
+  light.width = cardPixels;
+  light.height = cardPixels;
+  const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
+  // Without a target centre (e.g. in tests) the target paper sits in the middle of the card.
+  const paint = (image, target) => {
+    paintCard(canvas.getContext('2d'), light, image, target ?? { x: 0, y: centreHeight });
+    texture.needsUpdate = true;
+  };
+  paint(null, null);
   const cardMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: false });
   const card = new THREE.Mesh(new THREE.PlaneGeometry(size, size), cardMaterial);
+  card.name = 'card';
   card.rotation.y = -Math.PI / 2;   // faces −X, toward the laser; local +X maps to world +Z (rail +x)
   card.position.set(0, centreHeight, 0);
   const back = box(0.003, size + 0.006, size + 0.006, materials.anodised);
@@ -352,8 +369,7 @@ function buildScreen() {
   return {
     group,
     update(part, look = {}) {
-      paintCard(data, cardPixels, look.cardImage ?? null);
-      texture.needsUpdate = true;
+      paint(look.cardImage ?? null, look.target);
       applyLook(materials, look);
       cardMaterial.transparent = Boolean(look.locked);
       cardMaterial.opacity = look.locked ? 0.4 : 1;

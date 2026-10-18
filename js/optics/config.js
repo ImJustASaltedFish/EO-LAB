@@ -25,7 +25,9 @@ export const CONFIG = deepFreeze({
   pinhole: { radius: 12.5e-6, range: 0.5e-3, fine: 1e-6, coarse: 10e-6, installOffsetMin: 30e-6, installOffsetMax: 120e-6 },
   mount: { ringRadius: 4e-3, ringOffset: 0.040, fine: 5e-6, coarse: 0.1e-3 },   // fine/coarse: moving the whole spatial filter
   lens: { focalLength: 0.200, diameter: 25.4e-3, clearAperture: 22.9e-3, zFine: 0.5e-3, zCoarse: 5e-3 },
-  screen: { size: 0.150, centreHeight: 0.100, zFine: 1e-3, zCoarse: 10e-3, imageSize: 256, cardPixels: 128, windowFactor: 2.5, windowMin: 5e-3, windowMax: 0.150 },
+  screen: { size: 0.150, centreHeight: 0.100, zFine: 1e-3, zCoarse: 10e-3, imageSize: 256, cardPixels: 128, cardTexture: 512, windowFactor: 2.5, windowMin: 5e-3, windowMax: 0.150 },
+  // Target paper on the screen, centred on the beam axis: rings every 5 mm scoring 10 (centre) to 1, an X ring and a crosshair.
+  target: { ringStep: 5e-3, rings: 10, xRadius: 2.5e-3 },
   rail: { zMin: 0.020, zMax: 1.130, beamBlockZ: 1.150, minGap: 0.005, grid: 1e-3, zFine: 1e-3, zCoarse: 10e-3 },
   footprint: { a1: [-0.010, 0.010], a2: [-0.010, 0.010], sf: [-0.060, 0.010], lens: [-0.010, 0.010], screen: [-0.010, 0.015] },
   noise: { count: 24, freqMin: 4e3, freqMax: 15e3, power: 0.04, gridSize: 256, gridSpan: 3 },

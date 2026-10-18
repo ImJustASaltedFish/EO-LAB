@@ -49,6 +49,18 @@ test('scene: the spatial filter post is centred under its base; the iris pin swi
   assertClose(angle(), Math.PI / 4, 1e-6, 'closed: the pin has swung 45° to the side');
 });
 
+test('scene: the screen card carries the target paper, centred where it is told', () => {
+  const screen = createPartModel('screen');
+  const { size, centreHeight } = CONFIG.screen;
+  screen.update(createInitialState(1).parts.screen, { cardImage: null, target: { x: 2e-3, y: centreHeight + 3e-3 } });
+  const canvas = screen.group.getObjectByName('card').material.map.image;
+  const perMetre = canvas.width / size;
+  const g = (x, y) => canvas.getContext('2d').getImageData(Math.floor(x), Math.floor(y), 1, 1).data[1];
+  const half = canvas.width / 2;
+  assert(g(half + 2e-3 * perMetre, half - 3e-3 * perMetre) < 40, 'crosshair crossing at the target centre');
+  assert(g(half, half) > 60, `the card centre, 3.6 mm from the target centre, is plain paper: ${g(half, half)}`);
+});
+
 test('scene: camera presets adapt to the shape of the 3D view', () => {
   const host = document.createElement('div');
   document.body.appendChild(host);

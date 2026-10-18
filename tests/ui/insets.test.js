@@ -34,8 +34,19 @@ test('insets: plane A and the screen draw, and fall back to a message without li
   drawPlaneAInset(c, null, 'No light');
   const centre = { x: 0, y: 0.1 };
   const shot = renderScreen({ sample: gaussianSpotSampler({ centre, radius: 2e-3 }), centre, size: 10e-3, pixels: 64 });
-  drawScreenInset(c, { window: shot }, { x: 3e-3, y: 0.1 });
+  drawScreenInset(c, { window: shot }, { mark: { x: 3e-3, y: 0.1 } });
   const middle = pixel(c, 80, 80);
   assert(middle[1] > 200, `bright spot in the middle: ${middle}`);
-  drawScreenInset(c, null, null, 'No light');
+  drawScreenInset(c, null, { noLightText: 'No light' });
+});
+
+test('insets: the screen close-up shows the target paper around its centre', () => {
+  const c = makeCanvas();
+  const centre = { x: 0, y: 0.1 };
+  const shot = renderScreen({ sample: gaussianSpotSampler({ centre, radius: 4e-3 }), centre, size: 10e-3, pixels: 64 });
+  drawScreenInset(c, { window: shot }, { target: centre });
+  assert(pixel(c, 80, 70)[1] < 0.6 * pixel(c, 90, 70)[1], 'the vertical crosshair runs through the beam');
+  // 16 px per mm: a target centred 2 mm higher puts its horizontal line at y = 80 − 32 = 48.
+  drawScreenInset(c, { window: shot }, { target: { x: 0, y: 0.102 } });
+  assert(pixel(c, 70, 48)[1] < 0.6 * pixel(c, 70, 56)[1], 'the target follows its centre');
 });

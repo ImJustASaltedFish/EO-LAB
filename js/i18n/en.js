@@ -95,7 +95,7 @@ export default {
   'step.s1.hint.4': 'Once the beam passes through both centres, leave Aperture 2 where it is.',
 
   'step.s2a.title': 'Step 2a · Spatial filter mount',
-  'step.s2a.body': 'Without the objective or pinhole, place the spatial filter mount close to the laser, after Aperture 1. The mount also starts a little off: adjust its post height and left–right position so the beam passes through the centre of its ring. Aperture 2 stays where it is, at least 300 mm after the mount. Put the screen after Aperture 2 and press "Mark beam position" to record where the beam is.',
+  'step.s2a.body': 'Without the objective or pinhole, place the spatial filter mount close to the laser, after Aperture 1. The mount also starts a little off: adjust its post height and left–right position so the beam passes through the centre of its ring. Aperture 2 stays where it is, at least 300 mm after the mount. Put the screen after Aperture 2 and press "Mark beam position" to record where the beam is. The screen carries a target paper centred on the beam axis, with rings 5 mm apart, so the spot\'s position and size are easy to check.',
   'step.s2a.check.mount': 'Mount between Aperture 1 and Aperture 2, z ≤ 300 mm',
   'step.s2a.check.centred': 'Beam through the ring centre (≤ 0.3 mm)',
   'step.s2a.check.a2far': 'Aperture 2 at least 300 mm after the mount',
@@ -116,14 +116,14 @@ export default {
   'step.s2b.hint.4': 'Turn objective Z back and forth to confirm both, then wind the objective all the way out.',
 
   'step.s3.title': 'Step 3 · 25 µm pinhole',
-  'step.s3.body': 'Install the 25 µm pinhole. Move the screen to just after the pinhole, in front of Aperture 2 and within 300 mm of the pinhole; closer makes the diffracted light easier to see. Slowly bring the objective in with the Z knob while adjusting the pinhole X/Y knobs to keep the light on the screen as bright as possible. Concentric diffraction rings (an Airy pattern) mean you are close; keep making small adjustments until a clean, bright, ring-free round spot (a spherical wave) appears. Aperture 2 does not need to be opened.',
+  'step.s3.body': 'Install the 25 µm pinhole. Move the screen to just after the pinhole, in front of Aperture 2 and within 300 mm of the pinhole; closer makes the diffracted light easier to see. Slowly bring the objective in with the Z knob while adjusting the pinhole X/Y knobs to keep the light on the screen as bright as possible. Concentric diffraction rings (an Airy pattern) mean you are close; keep making small adjustments until a clean, bright round spot with no diffraction rings (a spherical wave) appears. Aperture 2 does not need to be opened.',
   'step.s3.check.installed': 'Pinhole installed',
   'step.s3.check.clean': 'Pinhole transmission ≥ 97%',
   'step.s3.check.screenClose': 'Screen within 300 mm after the pinhole, in front of Aperture 2',
   'step.s3.hint.1': 'The screen goes between the pinhole and Aperture 2: type a position in the screen\'s box, or drag the screen in the 3D view to just after the mount.',
   'step.s3.hint.2': 'Move the objective in a little, then make the screen brightest with pinhole X/Y; repeat.',
-  'step.s3.hint.3': 'Rings mean you are nearly there: switch to fine steps.',
-  'step.s3.hint.4': 'Done when the spot is round, bright and ring-free.',
+  'step.s3.hint.3': 'Diffraction rings mean you are nearly there: switch to fine steps.',
+  'step.s3.hint.4': 'Done when the spot is round, bright and free of diffraction rings.',
 
   'step.s4.title': 'Step 4 · Collimating lens',
   'step.s4.body': 'Aperture 2 stays where it is. Move Aperture 1 to between the pinhole and the lens. Place the convex lens (f = 200 mm) about one focal length from the pinhole and set its height. Open Aperture 1 just enough that the beam reaching the lens is smaller than the lens. Put the screen between the lens and Aperture 2, then move the lens slowly while moving the screen back and forth: when the spot size on the screen no longer changes, the lens is in the right place, with the pinhole at the lens\'s front focal point.',
@@ -135,7 +135,7 @@ export default {
   'step.s4.hint.1': 'Leave Aperture 2 alone and move Aperture 1 between the pinhole and the lens.',
   'step.s4.hint.2': 'Put the lens about 200 mm from the pinhole.',
   'step.s4.hint.3': 'Open Aperture 1 so the beam is smaller than the lens.',
-  'step.s4.hint.4': 'Move the screen between the lens and Aperture 2: a growing spot means the lens is too close (diverging); a shrinking spot means too far (converging).',
+  'step.s4.hint.4': 'Move the screen between the lens and Aperture 2 and compare the spot with the target rings: a growing spot means the lens is too close (diverging); a shrinking spot means too far (converging).',
 
   'step.done.title': 'Done',
   'step.done.body': 'Well done! Your setup matches Fig. 1-3 of the handout: laser → objective → pinhole → iris → lens → screen.',

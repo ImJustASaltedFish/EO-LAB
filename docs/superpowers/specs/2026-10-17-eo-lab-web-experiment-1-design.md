@@ -74,7 +74,7 @@ Bench coordinates: **z** along the rail from the laser exit (z = 0) toward the f
 | 光圈1, 光圈2 Aperture 1, 2 | yes | z; 支柱高度 post height; 左右位置 left–right; 孔徑 opening | height 70–130 mm, fine 0.05 mm, coarse 0.5 mm; left–right ±5 mm, fine 0.05 mm, coarse 0.5 mm; opening Ø 1.0–12.0 mm |
 | 空間濾波座 Spatial filter mount | yes | z; post height and left–right (they move the whole spatial filter: ring, objective and pinhole); 物鏡 objective (install; fixed on the mount axis); 物鏡 Z focus; 針孔 pinhole (install); 針孔 X/Y | height 70–130 mm and left–right ±5 mm, fine 5 µm, coarse 0.1 mm; focus travel s = 0–6 mm, fine 2 µm, coarse 50 µm; pinhole X/Y ±0.5 mm, fine 1 µm, coarse 10 µm |
 | 凸透鏡 Convex lens (f_e = 200 mm, Ø 25.4 mm) | yes | z; post height | z fine 0.5 mm, coarse 5 mm; height as irises |
-| 觀測屏幕 Screen (150 × 150 mm white card) | yes | z; 標記光點 mark beam position (the mark stays on the card when the screen moves) | z fine 1 mm, coarse 10 mm |
+| 觀測屏幕 Screen (150 × 150 mm white card with a target paper, §3.8) | yes | z; 標記光點 mark beam position (the mark stays on the card when the screen moves) | z fine 1 mm, coarse 10 mm |
 
 Rules:
 - A part's z is the plane of its optic: the iris plate, the lens, the screen surface. For the spatial filter mount, z is the **pinhole plane**; the objective sits upstream of it (§4.1).
@@ -108,7 +108,7 @@ Each run starts with a random, always-solvable misalignment (§4.1). Steps unloc
 - Hints: (1) close both irises; Aperture 1 next to the laser, Aperture 2 at the far end; (2) in the close-ups, a spot above the hole means raise the iris, a spot to the right means move the iris right; (3) the beam is level, so both height readings should match the beam height; (4) once the beam passes both centres, leave Aperture 2 where it is.
 
 **步驟2a 空間濾波座 — Step 2a: spatial filter mount** (§4A(2) i–ii, Fig. 1-4 (2a))
-- Do: place the mount, without objective or pinhole, close to the laser after Aperture 1. The mount also starts 0.5–2 mm to one side: set its post height and left–right position so the beam goes through the centre of its ring. Aperture 2 stays where step 1 left it, behind the mount. Place the screen after Aperture 2 and mark the beam position.
+- Do: place the mount, without objective or pinhole, close to the laser after Aperture 1. The mount also starts 0.5–2 mm to one side: set its post height and left–right position so the beam goes through the centre of its ring. Aperture 2 stays where step 1 left it, behind the mount. Place the screen after Aperture 2 and mark the beam position. The screen carries a target paper centred on the beam axis (§3.8).
 - Checks:
   1. Mount on the rail between Aperture 1 and Aperture 2, at z ≤ 300 mm.
   2. Beam centre within 0.3 mm of the mount axis.
@@ -173,9 +173,11 @@ M1 and M2 (laser-knob warnings) were dropped with the laser knobs; the remaining
 - **Aperture face (1, 2):** iris blades, the hole at the current opening, and the beam's light falling on the blades wherever it misses the hole — the view students use in the lab. Brightness uses a square-root curve (not the screen's log curve), so when the expanded beam overfills the plate in step 2b its brightest part still shows where its centre is.
 - **Plane A (back face of Aperture 1):** the objective's reflection rings and the hole, after the objective is installed.
 - **Spatial-filter ring:** the mount's front ring with the beam spot (step 2a).
-- **Screen:** the computed screen image (§4.5) with a mm ruler and the step-2a mark.
+- **Screen:** the computed screen image (§4.5) with a mm ruler, the target paper and the step-2a mark.
 
-The 3D screen card uses the same image as its texture.
+The 3D screen card uses the same light image, upscaled to a 512 px texture with the target paper printed over it.
+
+**Target paper** (added 2026-10-18 at the user's request, to make checks easier): like an archery or airsoft target. Rings every 5 mm out to 50 mm radius score 10 (the centre) down to 1, with an inner X ring of radius 2.5 mm, a crosshair across the card and the scores 1–9 printed on the diagonals (clear of the crosshair; left out when the rings are too close together to label). It is centred on the beam axis — the rail centreline at the laser height — so an aligned beam lands on the bullseye and any decentring shows as an offset spot; the 5 mm rings also give the spot size at a glance (step 4). It is printed like ink: it multiplies the card colour by about 0.25, so the rings stay visible inside the beam.
 
 ### 3.9 Visual style
 
@@ -331,6 +333,7 @@ eo-lab-web/
       panel.js          step card, checklist, hints, think cards, readouts
       controls.js       knob dials, sliders, ± buttons, position inputs
       insets.js         2D close-ups with mm scales
+      target.js         the target paper printed on the screen (close-up and 3D card)
       toast.js          warnings
       clock.js          top-bar timer (mm:ss), stopped at Done
   tests/

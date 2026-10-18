@@ -130,6 +130,9 @@ async function createScene3d() {
   return { view, benchModel, parts, beam, rackSlot: models.rackSlot };
 }
 
+// The target paper on the screen is centred on the beam axis: the rail centreline at the laser height.
+const targetCentre = () => ({ x: 0, y: state.hidden.laserHeight });
+
 function renderScene() {
   if (!scene3d) return;
   const { benchModel, parts, beam, rackSlot } = scene3d;
@@ -147,6 +150,7 @@ function renderScene() {
       locked: !F.isPartUnlocked(flow, id),
       selected: selectedPart === id,
       cardImage: id === 'screen' && result.screen ? result.screen.card.image : null,
+      target: targetCentre(),
     });
   }
   beam.update(result);
@@ -221,7 +225,11 @@ function renderInsets() {
       drawPlaneAInset(canvas, result.planeA, noLight);
     } else {
       const mark = state.parts.screen.mark;
-      drawScreenInset(canvas, result.screen, mark ? { x: mark.x, y: CONFIG.screen.centreHeight + mark.y } : null, noLight);
+      drawScreenInset(canvas, result.screen, {
+        mark: mark ? { x: mark.x, y: CONFIG.screen.centreHeight + mark.y } : null,
+        target: targetCentre(),
+        noLightText: noLight,
+      });
     }
   }
 }

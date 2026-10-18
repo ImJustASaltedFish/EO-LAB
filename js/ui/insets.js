@@ -1,5 +1,6 @@
 // 2D close-ups drawn on <canvas>: iris faces, the spatial-filter ring, plane A and the screen (spec §3.8).
 import { beamColour, cardPixel } from '../optics/screen.js';
+import { drawTarget } from './target.js';
 
 export function niceStep(spanMm) {
   const raw = spanMm / 6;
@@ -108,8 +109,9 @@ function scratchCanvas(pixels) {
   return scratch;
 }
 
-// The computed screen image with a mm ruler; `mark` is the step-2a mark in rail coordinates (or null).
-export function drawScreenInset(canvas, screen, mark = null, noLightText = '—') {
+// The computed screen image with a mm ruler and the target paper. `target` (the target centre) and `mark` (the
+// step-2a mark) are in rail coordinates, or null.
+export function drawScreenInset(canvas, screen, { mark = null, target = null, noLightText = '—' } = {}) {
   const ctx = canvas.getContext('2d');
   const { width, height } = canvas;
   ctx.fillStyle = '#0e1013';
@@ -132,6 +134,7 @@ export function drawScreenInset(canvas, screen, mark = null, noLightText = '—'
   offCtx.putImageData(data, 0, 0);
   ctx.imageSmoothingEnabled = true;
   ctx.drawImage(off, 0, 0, width, height);
+  if (target) drawTarget(ctx, { centre: target, left: centre.x - size / 2, top: centre.y + size / 2, scale: width / size });
 
   const spanMm = size * 1e3;
   const step = niceStep(spanMm);
