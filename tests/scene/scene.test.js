@@ -15,7 +15,7 @@ test('scene: bench and every part model build and render', () => {
   document.body.appendChild(host);
   const view = createView(host);
   const benchModel = buildBench(view.scene);
-  benchModel.laser.update({ height: 0.1, pitch: 0, yaw: 0 });
+  benchModel.laser.update({ height: 0.1 });
   const parts = createInitialState(1).parts;
   for (const id of PART_IDS) {
     const model = createPartModel(id);

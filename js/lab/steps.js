@@ -21,7 +21,7 @@ export const STEPS = Object.freeze([
   {
     id: 's1',
     parts: ['a1', 'a2'],
-    controls: ['laser.pitch', 'laser.yaw', 'a1.z', 'a1.height', 'a1.opening', 'a2.z', 'a2.height', 'a2.opening'],
+    controls: ['a1.z', 'a1.height', 'a1.x', 'a1.opening', 'a2.z', 'a2.height', 'a2.x', 'a2.opening'],
     insets: ['a1', 'a2'],
     camera: 'laser',
     checks: [
@@ -31,8 +31,11 @@ export const STEPS = Object.freeze([
           && s.parts.a1.opening <= C.s1.openingMax && s.parts.a2.opening <= C.s1.openingMax,
       },
       { id: 'positions', test: (s) => s.parts.a1.onRail && s.parts.a2.onRail && s.parts.a1.z <= C.s1.a1MaxZ && s.parts.a2.z >= C.s1.a2MinZ },
+      {
+        id: 'sameHeight',
+        test: (s) => s.parts.a1.onRail && s.parts.a2.onRail && Math.abs(s.parts.a1.height - s.parts.a2.height) <= C.s1.heightTol,
+      },
       { id: 'passes', test: (s, r) => len(r.at.a1?.offset) <= C.s1.centreTol && len(r.at.a2?.offset) <= C.s1.centreTol },
-      { id: 'parallel', test: (s, r) => Math.abs(r.beamAngles.x) <= C.s1.angleTol && Math.abs(r.beamAngles.y) <= C.s1.angleTol },
     ],
     hints: 4,
     questions: [],
@@ -40,7 +43,7 @@ export const STEPS = Object.freeze([
   {
     id: 's2a',
     parts: ['sf', 'screen'],
-    controls: ['sf.z', 'sf.height', 'screen.z', 'screen.mark'],
+    controls: ['sf.z', 'sf.height', 'sf.x', 'screen.z', 'screen.mark'],
     insets: ['ring', 'screen'],
     camera: 'filter',
     checks: [
@@ -64,7 +67,7 @@ export const STEPS = Object.freeze([
   {
     id: 's2b',
     parts: [],
-    controls: ['sf.objective', 'sf.objX', 'sf.objY', 'sf.focus', 'a2.opening'],
+    controls: ['sf.objective', 'sf.focus', 'sf.height', 'sf.x'],
     insets: ['planeA', 'a2'],
     camera: 'filter',
     checks: [
@@ -79,13 +82,20 @@ export const STEPS = Object.freeze([
   {
     id: 's3',
     parts: [],
-    controls: ['sf.pinhole', 'sf.phX', 'sf.phY', 'sf.focus', 'screen.z', 'a2.opening'],
+    controls: ['sf.pinhole', 'sf.phX', 'sf.phY', 'sf.focus', 'screen.z'],
     insets: ['screen'],
     camera: 'screen',
     checks: [
       { id: 'installed', test: (s) => s.parts.sf.pinhole },
       { id: 'clean', test: (s, r) => (r.pinhole?.transmission ?? 0) >= C.s3.transmissionMin },
-      { id: 'opened', test: (s) => s.parts.a2.opening >= C.s3.a2OpeningMin },
+      {
+        id: 'screenClose',
+        test: (s) => {
+          const { sf, a2, screen } = s.parts;
+          return sf.onRail && a2.onRail && screen.onRail && sf.z < screen.z && screen.z < a2.z
+            && screen.z - sf.z <= C.s3.screenMaxDistance;
+        },
+      },
     ],
     hints: 4,
     questions: ['q1', 'q4', 'q5'],
@@ -93,7 +103,7 @@ export const STEPS = Object.freeze([
   {
     id: 's4',
     parts: ['lens'],
-    controls: ['a2.remove', 'a1.z', 'a1.opening', 'lens.z', 'lens.height', 'screen.z'],
+    controls: ['a1.z', 'a1.opening', 'lens.z', 'lens.height', 'screen.z'],
     insets: ['screen'],
     camera: 'overview',
     checks: [
@@ -101,7 +111,7 @@ export const STEPS = Object.freeze([
         id: 'layout',
         test: (s) => {
           const { a1, a2, sf, lens } = s.parts;
-          return !a2.onRail && a1.onRail && sf.onRail && lens.onRail && sf.z < a1.z && a1.z < lens.z;
+          return a1.onRail && a2.onRail && sf.onRail && lens.onRail && sf.z < a1.z && a1.z < lens.z && lens.z < a2.z;
         },
       },
       { id: 'lensCentred', test: (s, r) => len(r.at.lens?.offset) <= C.s4.lensCentreTol },
@@ -115,8 +125,11 @@ export const STEPS = Object.freeze([
       { id: 'tested', test: (s, r, flow) => s.stats.testTravel - flow.stepStart.testTravel >= C.s4.screenTravelMin },
       {
         id: 'collimated',
-        test: (s, r) => s.parts.screen.onRail && s.parts.lens.onRail && s.parts.screen.z > s.parts.lens.z
-          && r.divergence?.state === 'collimated',
+        test: (s, r) => {
+          const { lens, screen, a2 } = s.parts;
+          return lens.onRail && screen.onRail && a2.onRail && lens.z < screen.z && screen.z < a2.z
+            && r.stoppedAt === 'screen' && r.divergence?.state === 'collimated';
+        },
       },
     ],
     hints: 4,
@@ -172,18 +185,14 @@ export function unlockedControls(flow) {
 
 // Warnings (spec §3.6). A warning shows once and re-arms when its condition stops being true.
 const stepIs = (flow, ...ids) => ids.includes(STEPS[flow.index].id);
+const A2_PLACEMENT = ['onRail', 'z', 'x', 'height'];
 const WARNINGS = [
+  // Aperture 2 is the alignment reference from step 1 to the end: it must stay where step 1 left it.
   {
-    id: 'm1',
-    test: (flow, prev, next) => stepIs(flow, 's1') && ['a1', 'a2'].some((p) => prev.parts[p].height !== next.parts[p].height
-      && next.parts[p].onRail && next.parts[p].z > W.m1FarZ),
+    id: 'm3',
+    test: (flow, prev, next) => stepIs(flow, 's2a', 's2b', 's3', 's4')
+      && A2_PLACEMENT.some((key) => prev.parts.a2[key] !== next.parts.a2[key]),
   },
-  {
-    id: 'm2',
-    test: (flow, prev, next) => flow.index > STEPS.findIndex((s) => s.id === 's1')
-      && (prev.laser.pitch !== next.laser.pitch || prev.laser.yaw !== next.laser.yaw),
-  },
-  { id: 'm3', test: (flow, prev, next) => stepIs(flow, 's2a', 's2b', 's3') && prev.parts.a2.height !== next.parts.a2.height },
   { id: 'm4', test: (flow, prev, next, result) => next.parts.sf.objective && result.focusDz < W.m4DzMin },
 ];
 

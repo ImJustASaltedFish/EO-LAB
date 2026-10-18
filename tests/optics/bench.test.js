@@ -8,7 +8,6 @@ function withObjective() {
   let s = afterStep1();
   s = S.placePart(s, 'sf', 0.250);
   s.parts.sf.objective = true;
-  s.hidden.objectiveOffset = { x: 0, y: 0 };
   return s;
 }
 
@@ -28,11 +27,16 @@ test('bench: aligned beam passes two closed irises and reaches the beam block', 
   assertEqual(r.segments.length, 3, 'laser→A1→A2→block');
 });
 
-test('bench: a tilted beam is stopped by the far iris', () => {
+test('bench: the fixed laser runs level along the rail centreline; an iris 1.6 mm aside blocks it', () => {
   const s = afterStep1();
-  s.hidden.pitch0 = 2e-3;
-  const r = bench(s);
-  assertClose(r.at.a2.offset.y, 2e-3 * 0.8, 1e-9, 'beam 1.6 mm high at 0.8 m');
+  for (const seg of bench(s).segments) {
+    for (const [x, y] of [[seg.x0, seg.y0], [seg.x1, seg.y1]]) {
+      assertClose(x, 0, 1e-12, 'on the centreline');
+      assertClose(y, s.hidden.laserHeight, 1e-12, 'level');
+    }
+  }
+  const r = bench(S.setValue(s, 'parts.a2.x', 1.6e-3));
+  assertClose(r.at.a2.offset.x, -1.6e-3, 1e-12, 'beam 1.6 mm to the side of the hole');
   assertEqual(r.stoppedAt, 'a2');
   assertEqual(r.powerAtScreen, 0);
 });
@@ -57,11 +61,11 @@ test('bench: collimation follows the lens distance', () => {
   assertEqual(moved(0.010).state, 'converging');
 });
 
-test('bench: plane A rings are centred only when the objective is centred', () => {
+test('bench: plane A rings are centred only when the spatial filter is centred on the beam', () => {
   const s = withObjective();
   for (const ring of bench(s).planeA.rings) assertClose(Math.hypot(ring.x, ring.y), 0, 1e-9);
   const delta = 0.1e-3;
-  const shifted = bench(S.setValue(s, 'parts.sf.objX', delta)).planeA;
+  const shifted = bench(S.setValue(s, 'parts.sf.x', delta)).planeA;
   const dA = objectivePlaneZ(s) - s.parts.a1.z;
   CONFIG.objective.surfaceRadii.forEach((R, j) => {
     assertRelClose(shifted.rings[j].x, (-delta * 2 * dA) / R, 1e-6, `ring ${j}`);
@@ -72,8 +76,17 @@ test('bench: objective alignment probe reports plane-A and Aperture 2 offsets', 
   const s = withObjective();
   const good = objectiveAlignmentAt(s, 0);
   assert(good.planeA < 1e-9 && good.a2 < 1e-9, `centred: ${JSON.stringify(good)}`);
-  const bad = objectiveAlignmentAt(S.setValue(s, 'parts.sf.objX', 0.1e-3), CONFIG.objective.travel);
+  const bad = objectiveAlignmentAt(S.setValue(s, 'parts.sf.x', 0.1e-3), CONFIG.objective.travel);
   assert(bad.planeA > 0.5e-3 && bad.a2 > 1e-3, `decentred: ${JSON.stringify(bad)}`);
+});
+
+test('bench: the objective and pinhole move with the spatial filter', () => {
+  const s = fullyAligned();
+  const moved = S.setValue(S.setValue(s, 'parts.sf.x', 20e-6), 'parts.sf.height', s.parts.sf.height - 20e-6);
+  const r = bench(moved);
+  assertClose(r.at.objective.focusCentre.x, 20e-6, 1e-12, 'the focus follows the objective');
+  assertClose(r.at.pinhole.x, 20e-6, 1e-12, 'the pinhole follows the mount');
+  assert(r.pinhole.transmission >= CONFIG.checks.s3.transmissionMin, `still filtering cleanly: ${r.pinhole.transmission}`);
 });
 
 test('bench: the screen shows a bright filtered spot when everything is aligned', () => {

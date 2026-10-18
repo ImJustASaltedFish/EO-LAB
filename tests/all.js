@@ -15,5 +15,6 @@ import './scene/beam-interact.test.js';
 import './ui/controls.test.js';
 import './ui/insets.test.js';
 import './ui/panel.test.js';
+import './ui/clock.test.js';
 import './app.test.js';
 import './lobby.test.js';

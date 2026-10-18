@@ -13,20 +13,16 @@ const F0 = CONFIG.objective.focalLength;
 const hyp = (v) => Math.hypot(v.x, v.y);
 const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
 
-export function laserAngles(state) {
-  return { x: state.hidden.yaw0 + state.laser.yaw, y: state.hidden.pitch0 + state.laser.pitch };
-}
-
+// The objective sits on the mount axis, so it moves with the whole spatial filter.
 export function objectiveAxis(state) {
   const sf = state.parts.sf;
-  const off = state.hidden.objectiveOffset ?? { x: 0, y: 0 };
-  return { x: off.x + sf.objX, y: sf.height + off.y + sf.objY };
+  return { x: sf.x, y: sf.height };
 }
 
 export function pinholeCentre(state) {
   const sf = state.parts.sf;
   const off = state.hidden.pinholeOffset ?? { x: 0, y: 0 };
-  return { x: off.x + sf.phX, y: sf.height + off.y + sf.phY };
+  return { x: sf.x + off.x + sf.phX, y: sf.height + off.y + sf.phY };
 }
 
 export function defocus(state) {
@@ -62,10 +58,10 @@ function buildElements(state) {
   const list = [];
   for (const id of ['a1', 'a2']) {
     const p = parts[id];
-    if (p.onRail) list.push({ kind: 'hole', id, z: p.z, centre: { x: 0, y: p.height }, r: p.opening / 2 });
+    if (p.onRail) list.push({ kind: 'hole', id, z: p.z, centre: { x: p.x, y: p.height }, r: p.opening / 2 });
   }
   if (parts.sf.onRail) {
-    list.push({ kind: 'hole', id: 'ring', z: ringPlaneZ(state), centre: { x: 0, y: parts.sf.height }, r: CONFIG.mount.ringRadius });
+    list.push({ kind: 'hole', id: 'ring', z: ringPlaneZ(state), centre: objectiveAxis(state), r: CONFIG.mount.ringRadius });
     if (parts.sf.objective) list.push({ kind: 'objective', id: 'objective', z: objectivePlaneZ(state), axis: objectiveAxis(state) });
     if (parts.sf.pinhole) list.push({ kind: 'pinhole', id: 'pinhole', z: parts.sf.z, centre: pinholeCentre(state) });
   }
@@ -102,7 +98,6 @@ function lensMap(map, z, f, axis) {
 function emptyResult(state) {
   return {
     laserOn: Boolean(state.laser.on),
-    beamAngles: laserAngles(state),
     focusDz: defocus(state),
     at: {},
     irisFaces: {},
@@ -121,12 +116,11 @@ export function bench(state, { render = true } = {}) {
   const result = emptyResult(state);
   if (!state.laser.on) return result;
   const noise = noiseFor(state.seed);
-  const angles = result.beamAngles;
   // Beam modes: 'raw' (laser beam), 'expanded' (after the objective), 'filtered' (after the pinhole).
   const beam = {
     mode: 'raw',
     z: 0,
-    ray: { x: 0, y: state.hidden.laserHeight, tx: angles.x, ty: angles.y },
+    ray: { x: 0, y: state.hidden.laserHeight, tx: 0, ty: 0 },   // the fixed laser: level, on the rail centreline
     q: qAtWaist(CONFIG.laser.waistRadius, LAMBDA),
     clips: [],
     clipRatio: Infinity,
@@ -338,7 +332,7 @@ export function bench(state, { render = true } = {}) {
     result.planeA = {
       holeRadius: a1.opening / 2,
       rings: CONFIG.objective.surfaceRadii.map((R) => ({
-        x: o.x + dA * (o.alpha.x + (2 * o.u.x) / R),
+        x: o.x + dA * (o.alpha.x + (2 * o.u.x) / R) - a1.x,
         y: o.y + dA * (o.alpha.y + (2 * o.u.y) / R) - a1.height,
         radius: o.W * (1 + (2 * dA) / R),
       })),

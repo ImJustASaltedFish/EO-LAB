@@ -15,7 +15,6 @@ const SHARED = {
   laserBody: standard({ color: 0x2f3a4a, roughness: 0.4, metalness: 0.5 }),
   laserNose: standard({ color: 0x111111, roughness: 0.6 }),
   mount: standard({ color: 0x1b1c1f, roughness: 0.5, metalness: 0.4 }),
-  accent: standard({ color: 0x00bfff, roughness: 0.5 }),
 };
 
 function box(w, h, d, material) {
@@ -137,23 +136,18 @@ function buildLaser(root) {
   const nose = cylinderX(0.008, 0.01, SHARED.laserNose);
   const plate = box(0.12, 0.012, 0.07, SHARED.mount);
   const post = cylinderY(0.008, 1, SHARED.rail);
-  const knobs = [0, 1, 2].map(() => cylinderY(0.006, 0.014, SHARED.accent));
-  group.add(body, nose, plate, post, ...knobs);
+  group.add(body, nose, plate, post);
   root.add(group);
   return {
     group,
-    update({ height, pitch, yaw }) {
+    // The laser is fixed and level: only its (random) exit height changes the model.
+    update({ height }) {
       body.position.set(-0.085, height, 0);
       nose.position.set(-0.004, height, 0);
       plate.position.set(-0.085, height - 0.028, 0);
       const postLength = Math.max(0.001, height - 0.034);
       post.scale.y = postLength;
       post.position.set(-0.085, postLength / 2, 0);
-      knobs[0].position.set(-0.135, height - 0.02, 0.028);
-      knobs[1].position.set(-0.135, height - 0.02, -0.028);
-      knobs[2].position.set(-0.035, height - 0.02, 0.028);
-      knobs[0].rotation.y = pitch * 300;   // knobs turn with their settings (visual feedback only)
-      knobs[1].rotation.y = yaw * 300;
     },
   };
 }

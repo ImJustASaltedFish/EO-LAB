@@ -32,4 +32,4 @@ export function randomSeed() {
   return Math.floor(Math.random() * 4294967296) >>> 0;
 }
 
-export const SALT = Object.freeze({ laser: 1, noise: 2, objective: 3, pinhole: 4 });
+export const SALT = Object.freeze({ laser: 1, noise: 2, pinhole: 4, lateral: 5 });

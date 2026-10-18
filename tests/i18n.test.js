@@ -25,7 +25,7 @@ test('i18n: every key the steps and warnings use exists', () => {
     step.insets.forEach((id) => need(`inset.${id}`));
     need(`ui.camera.${step.camera}`);
   }
-  ['m1', 'm2', 'm3', 'm4', 'm5'].forEach((m) => need(`warning.${m}`));
+  ['m3', 'm4', 'm5'].forEach((m) => need(`warning.${m}`));
   assertEqual(missing.join(', '), '', 'missing keys');
 });
 

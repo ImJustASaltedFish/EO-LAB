@@ -9,32 +9,34 @@ import { createPanel } from './ui/panel.js';
 import { createKnob, createSlider, createButton, createPositionControl } from './ui/controls.js';
 import { drawApertureInset, drawPlaneAInset, drawScreenInset } from './ui/insets.js';
 import { showToast } from './ui/toast.js';
+import { createClock, formatClock } from './ui/clock.js';
 import { webglAvailable } from './scene/webgl.js';
 
-const { laser: L, post: P, objective: O, pinhole: PH, iris: I } = CONFIG;
+const { laser: L, post: P, lateral: X, mount: M, objective: O, pinhole: PH, iris: I } = CONFIG;
 const modeLabels = { fine: () => t('ui.fine'), coarse: () => t('ui.coarse') };
 const partLabel = (id, key) => () => `${t(`part.${id}`)} · ${t(key)}`;
 const fixed = (digits, factor) => (v) => (v * factor).toFixed(digits);
 
-function heightKnob(id) {
-  return { path: `parts.${id}.height`, label: partLabel(id, 'control.height'), unit: 'mm', format: fixed(2, 1e3), min: P.min, max: P.max, fine: P.fine, coarse: P.coarse };
+// The whole spatial filter moves in 5 µm fine steps (step 2b), so its height and left–right read to 1 µm.
+const SF_STEPS = { fine: M.fine, coarse: M.coarse, format: fixed(3, 1e3) };
+function heightKnob(id, steps = { fine: P.fine, coarse: P.coarse, format: fixed(2, 1e3) }) {
+  return { path: `parts.${id}.height`, label: partLabel(id, 'control.height'), unit: 'mm', min: P.min, max: P.max, ...steps };
 }
-function decentreKnob(key) {
-  return { path: `parts.sf.${key}`, label: () => t(`control.sf.${key}`), unit: 'µm', format: fixed(0, 1e6), min: -O.decentreRange, max: O.decentreRange, fine: O.decentreFine, coarse: O.decentreCoarse };
+function lateralKnob(id, steps = { fine: X.fine, coarse: X.coarse, format: fixed(2, 1e3) }) {
+  return { path: `parts.${id}.x`, label: partLabel(id, 'control.x'), unit: 'mm', min: -X.range, max: X.range, ...steps };
 }
 function pinholeKnob(key) {
   return { path: `parts.sf.${key}`, label: () => t(`control.sf.${key}`), unit: 'µm', format: fixed(0, 1e6), min: -PH.range, max: PH.range, fine: PH.fine, coarse: PH.coarse };
 }
 
 const KNOBS = {
-  'laser.pitch': { path: 'laser.pitch', label: () => t('control.laser.pitch'), unit: 'mrad', format: fixed(2, 1e3), min: -L.knobRange, max: L.knobRange, fine: L.knobFine, coarse: L.knobCoarse },
-  'laser.yaw': { path: 'laser.yaw', label: () => t('control.laser.yaw'), unit: 'mrad', format: fixed(2, 1e3), min: -L.knobRange, max: L.knobRange, fine: L.knobFine, coarse: L.knobCoarse },
   'a1.height': heightKnob('a1'),
   'a2.height': heightKnob('a2'),
-  'sf.height': heightKnob('sf'),
+  'sf.height': heightKnob('sf', SF_STEPS),
   'lens.height': heightKnob('lens'),
-  'sf.objX': decentreKnob('objX'),
-  'sf.objY': decentreKnob('objY'),
+  'a1.x': lateralKnob('a1'),
+  'a2.x': lateralKnob('a2'),
+  'sf.x': lateralKnob('sf', SF_STEPS),
   'sf.focus': { path: 'parts.sf.focus', label: () => t('control.sf.focus'), unit: 'mm', format: fixed(3, 1e3), min: 0, max: O.travel, fine: O.focusFine, coarse: O.focusCoarse },
   'sf.phX': pinholeKnob('phX'),
   'sf.phY': pinholeKnob('phY'),
@@ -56,7 +58,7 @@ let flow = F.createFlow();
 let result = bench(state);
 let selectedPart = null;
 let scene3d = null;
-const startedAt = performance.now();
+const clock = createClock();
 const debug = window.eolab ?? (window.eolab = { errors: [] });
 
 const panel = createPanel(document.getElementById('panel'), {
@@ -131,12 +133,12 @@ async function createScene3d() {
 function renderScene() {
   if (!scene3d) return;
   const { benchModel, parts, beam, rackSlot } = scene3d;
-  benchModel.laser.update({ height: state.hidden.laserHeight, pitch: state.laser.pitch, yaw: state.laser.yaw });
+  benchModel.laser.update({ height: state.hidden.laserHeight });
   for (const id of S.PART_IDS) {
     const part = state.parts[id];
     const model = parts.get(id);
     if (part.onRail) {
-      model.group.position.set(part.z, 0, 0);
+      model.group.position.set(part.z, 0, part.x ?? 0);   // world Z is rail x (left–right)
     } else {
       const slot = rackSlot(id);
       model.group.position.set(slot.x, 0, slot.z);
@@ -233,13 +235,10 @@ function controlEnabled(id) {
   switch (id) {
     case 'sf.objective': return sf.onRail && !sf.objective;
     case 'sf.pinhole': return sf.onRail && sf.objective && !sf.pinhole;
-    case 'sf.objX':
-    case 'sf.objY':
     case 'sf.focus': return sf.objective;
     case 'sf.phX':
     case 'sf.phY': return sf.pinhole;
     case 'screen.mark': return parts.screen.onRail && Boolean(result.at.screen);
-    case 'a2.remove': return parts.a2.onRail;
     default: {
       const part = id.split('.')[0];
       return part in parts ? parts[part].onRail : true;
@@ -283,7 +282,7 @@ const BUTTONS = {
   },
   'sf.objective': {
     label: () => (state.parts.sf.objective ? t('control.installed') : t('control.sf.objective')),
-    onClick: () => update(S.installObjective(state, result.at.ring ?? { x: 0, y: state.parts.sf.height })),
+    onClick: () => update(S.installObjective(state)),
   },
   'sf.pinhole': {
     label: () => (state.parts.sf.pinhole ? t('control.installed') : t('control.sf.pinhole')),
@@ -297,7 +296,6 @@ const BUTTONS = {
       if (result.at.screen) update(S.markScreen(state, result.at.screen));
     },
   },
-  'a2.remove': { label: partLabel('a2', 'ui.remove'), onClick: () => update(S.removePart(state, 'a2')) },
 };
 
 function makeControl(id) {
@@ -369,7 +367,7 @@ function readouts() {
 
 function summaryLines() {
   const predicted = (CONFIG.lens.focalLength / O.focalLength) * 2 * L.waistRadius;
-  const elapsed = (performance.now() - startedAt) / 1000;
+  const elapsed = clock.seconds();
   return [
     t('step.done.measured', {
       measured: result.screen ? (result.screen.d4sigma * 1e3).toFixed(1) : t('readout.none'),
@@ -395,6 +393,10 @@ function renderPanel() {
   panel.renderReadouts(readouts());
 }
 
+function renderTimer() {
+  document.querySelector('.timer').textContent = formatClock(clock.seconds());
+}
+
 function renderProgress() {
   document.querySelector('.progress').replaceChildren(...F.STEPS.map((step, index) => {
     const li = document.createElement('li');
@@ -410,6 +412,9 @@ function renderStatic() {
   document.documentElement.lang = getLanguage() === 'zh-TW' ? 'zh-Hant-TW' : 'en';
   document.title = `EO LAB · ${t('app.exp1Short')}`;
   document.querySelector('.lang-btn').textContent = t('ui.switchLanguage');
+  const timer = document.querySelector('.timer');
+  timer.title = t('ui.timer');
+  timer.setAttribute('aria-label', t('ui.timer'));
   document.querySelectorAll('[data-camera]').forEach((button) => {
     button.textContent = t(`ui.camera.${button.dataset.camera}`);
   });
@@ -428,6 +433,10 @@ function render() {
 
 function enterStep() {
   const step = F.currentStep(flow);
+  if (step.id === 'done') {
+    clock.stop();
+    renderTimer();
+  }
   insetVisible.clear();
   step.insets.forEach((id) => insetVisible.add(id));
   buildControls();
@@ -457,4 +466,6 @@ if (webglAvailable()) {
 }
 renderStatic();
 enterStep();
+renderTimer();
+setInterval(renderTimer, 1000);
 Object.assign(debug, { ready: true, t, seed, getState: () => state, getFlow: () => flow, getResult: () => result });

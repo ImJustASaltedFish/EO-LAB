@@ -28,12 +28,15 @@ test('app: laser page boots, turns the laser on and moves to step 1', async () =
   assertEqual(app.errors.length, 0, `errors: ${app.errors.join(' | ')}`);
   assertEqual(doc.querySelector('.step-title').textContent, app.t('step.start.title'));
   assert(doc.querySelector('#viewport canvas'), '3D canvas created');
+  assert(/^\d{2}:\d{2}$/.test(doc.querySelector('.timer').textContent), `timer shows mm:ss: ${doc.querySelector('.timer').textContent}`);
   doc.querySelector('[data-control="laser.power"]').click();
   assert(doc.querySelector('.checklist li').classList.contains('pass'), 'laser-on check passes');
   const next = doc.querySelector('.next-btn');
   assert(!next.disabled, 'next enabled');
   next.click();
   assertEqual(doc.querySelector('.step-title').textContent, app.t('step.s1.title'));
+  assert(doc.querySelector('[data-control="a1.x"]') && doc.querySelector('[data-control="a2.x"]'), 'left–right controls for both irises');
+  assertEqual(doc.querySelector('[data-control^="laser.pitch"], [data-control^="laser.yaw"]'), null, 'the laser has no tilt knobs');
   doc.querySelector('[data-control="a1.place"]').click();
   assert(app.getState().parts.a1.onRail, 'Aperture 1 placed on the rail');
   assert(app.getResult().segments.length > 0, 'beam traced');

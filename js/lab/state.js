@@ -5,45 +5,45 @@ import { createRng, deriveSeed, uniform, randomSign, randomVector, SALT } from '
 
 export const PART_IDS = Object.freeze(['a1', 'a2', 'sf', 'lens', 'screen']);
 
+// The laser is fixed and level on the rail centreline (x = 0); only its height is random. The irises and the
+// spatial filter mount start 0.5–2 mm to one side, so the student centres them left–right as well as in height.
 export function createInitialState(seed) {
   const rng = createRng(deriveSeed(seed, SALT.laser));
-  const { laser, post, iris, objective } = CONFIG;
+  const side = createRng(deriveSeed(seed, SALT.lateral));
+  const { laser, post, iris, objective, lateral } = CONFIG;
+  const offCentre = () => randomSign(side) * uniform(side, lateral.startMin, lateral.startMax);
   return {
     seed,
-    laser: { on: false, pitch: 0, yaw: 0 },
+    laser: { on: false },
     parts: {
-      a1: { onRail: false, z: 0, height: post.initial, opening: iris.openingInitial },
-      a2: { onRail: false, z: 0, height: post.initial, opening: iris.openingInitial },
+      a1: { onRail: false, z: 0, x: offCentre(), height: post.initial, opening: iris.openingInitial },
+      a2: { onRail: false, z: 0, x: offCentre(), height: post.initial, opening: iris.openingInitial },
       sf: {
-        onRail: false, z: 0, height: post.initial, objective: false, pinhole: false,
-        objX: 0, objY: 0, focus: objective.startAt, phX: 0, phY: 0,
+        onRail: false, z: 0, x: offCentre(), height: post.initial, objective: false, pinhole: false,
+        focus: objective.startAt, phX: 0, phY: 0,
       },
       lens: { onRail: false, z: 0, height: post.initial },
       screen: { onRail: false, z: 0, mark: null },
     },
     hidden: {
       laserHeight: laser.exitHeight + uniform(rng, -laser.exitHeightJitter, laser.exitHeightJitter),
-      pitch0: randomSign(rng) * uniform(rng, laser.tiltMin, laser.tiltMax),
-      yaw0: randomSign(rng) * uniform(rng, laser.tiltMin, laser.tiltMax),
-      objectiveOffset: null,
       pinholeOffset: null,
     },
     stats: { screenTravel: 0, testTravel: 0 },
   };
 }
 
-const { laser: L, post: P, iris: I, objective: O, pinhole: PH } = CONFIG;
+const { post: P, lateral: X, iris: I, objective: O, pinhole: PH } = CONFIG;
 const RANGES = {
-  'laser.pitch': [-L.knobRange, L.knobRange],
-  'laser.yaw': [-L.knobRange, L.knobRange],
   'parts.a1.height': [P.min, P.max],
   'parts.a2.height': [P.min, P.max],
   'parts.sf.height': [P.min, P.max],
   'parts.lens.height': [P.min, P.max],
+  'parts.a1.x': [-X.range, X.range],
+  'parts.a2.x': [-X.range, X.range],
+  'parts.sf.x': [-X.range, X.range],
   'parts.a1.opening': [I.openingMin, I.openingMax],
   'parts.a2.opening': [I.openingMin, I.openingMax],
-  'parts.sf.objX': [-O.decentreRange, O.decentreRange],
-  'parts.sf.objY': [-O.decentreRange, O.decentreRange],
   'parts.sf.focus': [0, O.travel],
   'parts.sf.phX': [-PH.range, PH.range],
   'parts.sf.phY': [-PH.range, PH.range],
@@ -130,24 +130,21 @@ export function removePart(state, id) {
   return next;
 }
 
-// The objective lands 0.2–0.6 mm off the current beam (spec §4.1). Offsets are relative to the mount axis.
-export function installObjective(state, beamAtMount) {
-  const sf = state.parts.sf;
-  if (sf.objective) return state;
-  const extra = randomVector(createRng(deriveSeed(state.seed, SALT.objective)), O.installOffsetMin, O.installOffsetMax);
+// The objective is fixed on the mount axis: centring it means moving the whole spatial filter (spec §4.1).
+export function installObjective(state) {
+  if (state.parts.sf.objective) return state;
   const next = structuredClone(state);
-  next.hidden.objectiveOffset = { x: beamAtMount.x + extra.x, y: beamAtMount.y - sf.height + extra.y };
   next.parts.sf.objective = true;
   return next;
 }
 
-// The pinhole lands 30–120 µm off the focused spot.
+// The pinhole lands 30–120 µm off the focused spot. The offset is relative to the mount axis.
 export function installPinhole(state, focusCentre) {
   const sf = state.parts.sf;
   if (sf.pinhole || !sf.objective) return state;
   const extra = randomVector(createRng(deriveSeed(state.seed, SALT.pinhole)), PH.installOffsetMin, PH.installOffsetMax);
   const next = structuredClone(state);
-  next.hidden.pinholeOffset = { x: focusCentre.x + extra.x, y: focusCentre.y - sf.height + extra.y };
+  next.hidden.pinholeOffset = { x: focusCentre.x - sf.x + extra.x, y: focusCentre.y - sf.height + extra.y };
   next.parts.sf.pinhole = true;
   return next;
 }
