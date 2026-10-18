@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EO LAB</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="lobby-page">
+  <main class="lobby">
+    <header class="lobby-header">
+      <div>
+        <h1 data-i18n="app.title"></h1>
+        <p class="lobby-subtitle" data-i18n="lobby.subtitle"></p>
+      </div>
+      <button type="button" class="lang-btn"></button>
+    </header>
+    <section class="cards">
+      <article class="card">
+        <h2 data-i18n="lobby.exp1.title"></h2>
+        <p data-i18n="lobby.exp1.body"></p>
+        <a class="card-action" href="./laser.html" data-i18n="lobby.start"></a>
+      </article>
+      <article class="card disabled" aria-disabled="true">
+        <h2 data-i18n="lobby.michelson.title"></h2>
+        <p data-i18n="lobby.comingLater"></p>
+      </article>
+      <article class="card disabled" aria-disabled="true">
+        <h2 data-i18n="lobby.mz.title"></h2>
+        <p data-i18n="lobby.comingLater"></p>
+      </article>
+    </section>
+    <section class="controls-guide">
+      <h2 data-i18n="lobby.controls.title"></h2>
+      <p data-i18n="lobby.controls.mouse"></p>
+      <p data-i18n="lobby.controls.touch"></p>
+    </section>
+  </main>
+  <script type="module" src="./js/lobby.js"></script>
+</body>
+</html>
