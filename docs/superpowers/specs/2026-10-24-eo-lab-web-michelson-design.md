@@ -1,7 +1,8 @@
 # EO LAB Web — Michelson Interferometer Design
 
 - **Date:** 2026-10-24
-- **Status:** approved; built on branch `feat/michelson` (see `docs/superpowers/plans/2026-10-24-eo-lab-web-michelson.md`)
+- **Status:** approved; built on branch `feat/michelson` (see `docs/superpowers/plans/2026-10-24-eo-lab-web-michelson.md`) and merged (PR #2)
+- **Revised 2026-10-24 (the user, after trying the live page; branch `feat/michelson-revisions`):** the source is Experiment 1's finished layout with Aperture 1 between the pinhole and the lens and no exit iris; each mirror goes 30 cm from the beam splitter, moved there by the student; the panel shows each mirror's and lens's distance from the beam splitter
 - **Scope:** the Michelson experiment page and the lobby card that opens it. Experiment 1 (`docs/superpowers/specs/2026-10-17-eo-lab-web-experiment-1-design.md`) is the reference for everything this spec does not change.
 
 ## 1. Background and goal
@@ -16,12 +17,13 @@ The VR app's Michelson scene draws two spots and a hand-tuned interference shade
 
 | Topic | Decision |
 |---|---|
-| Light source | Ready-made: the Experiment 1 expander (laser, spatial filter, f = 200 mm lens, iris) is already aligned. Only the power switch and the iris are controls |
+| Light source | Ready-made: Experiment 1's finished expander (laser, spatial filter, Aperture 1 between the pinhole and the lens, f = 200 mm lens), already aligned, with no exit iris (revised). Only the power switch and Aperture 1 are controls |
 | Laser | Green 532 nm, the same as Experiment 1 |
 | Placing parts | Free placement on the breadboard; the hole grid is the reference. Tips help a student who gets lost |
-| Alignment practice (the user's lab) | Slide the screen along each arm's hole row, near and far: the spot must stay on the same point of the card. Then turn each mirror until its reflected spot comes back onto the iris hole |
+| Alignment practice (the user's lab) | Slide the screen along each arm's hole row, near and far: the spot must stay on the same point of the card. Then turn each mirror until its reflected spot comes back onto Aperture 1's hole |
+| Arm length (revised) | Each mirror 30 cm (12 holes) from the beam splitter, set by the student: Place puts a mirror 15 cm away and a readout shows its distance from the beam splitter |
 | Coherence length | Not measured (handout step 5 is skipped). It is still in the physics: fringes need the two arms matched within about one hole |
-| Ring fringes | Two 2-inch convex lenses, f = 100 mm, one per arm. The answer: each lens about 10 cm from its mirror, placed and slid by the student |
+| Ring fringes | Two 2-inch convex lenses, f = 100 mm, one per arm. The answer: each lens about 10 cm from its mirror (20 cm from the beam splitter), placed and slid by the student, with its distance from the beam splitter shown (revised) |
 | Approach | A new page with its own state, steps and breadboard tracer, reusing the tested optics and UI modules. Experiment 1 behaviour does not change |
 
 ### Non-goals for this build
@@ -49,11 +51,11 @@ Table coordinates match Experiment 1: **z** along the source beam, away from the
 
 - **Breadboard** 1400 × 900 mm: z from −500 to 900 mm, x from −450 to 450 mm, M6 holes every 25 mm (z = −475 … 875, x = −425 … 425).
 - **Parts rack** along the back edge (−x side), off the working area, as in Experiment 1. Parts not needed yet are locked, with a tooltip naming their step.
-- **Ready source**, fixed on row x = 0 and not movable: laser (exit at z = −320 mm), spatial filter (pinhole at z = −270 mm), collimating lens f = 200 mm (z = −70 mm), iris (z = −25 mm). It delivers a collimated beam, 2W = 22.2 mm (Experiment 1 eq. 1-1), clipped by the iris. The holes it covers cannot take parts.
+- **Ready source**, fixed on row x = 0 and not movable, as Experiment 1's step 4 leaves it: laser (exit at z = −320 mm), spatial filter (pinhole at z = −270 mm), Aperture 1 (z = −170 mm, halfway between the pinhole and the lens), collimating lens f = 200 mm (z = −70 mm; Experiment 1's lens, clear aperture 22.9 mm). There is no exit iris. The lens delivers a collimated beam, 2W = 22.2 mm (Experiment 1 eq. 1-1); Aperture 1 sets how much of it there is (§4.1). The holes it covers cannot take parts.
 
 | Part (zh / en) | Placement | Adjustable | Range / steps |
 |---|---|---|---|
-| 雷射光源 Ready source | fixed | 電源 power; 光圈 iris opening (slider) | Ø 1.0–12.0 mm, step 0.1 mm; starts at 12.0 mm |
+| 雷射光源 Ready source | fixed | 電源 power; 光圈1 Aperture 1 opening (slider) | Ø 1.0–12.0 mm, step 0.1 mm; starts at 12.0 mm |
 | 分光鏡 Beam splitter (50:50 plate, Ø 25.4 mm, ring mount on a rotation stage) | on a hole; heading in 45° steps | 旋轉 rotation (about the vertical); 俯仰 tilt | rotation ±50 mrad, fine 0.05 mrad, coarse 1 mrad; tilt ±20 mrad, fine 0.05 mrad, coarse 1 mrad |
 | 反射鏡 M1 (Ø 25.4 mm flat mirror, kinematic mount, on a micrometer stage) | on a hole; heading in 45° steps | 水平 / 垂直 horizontal and vertical tilt knobs; 測微頭 micrometer stage | tilts ±25 mrad, fine 0.02 mrad, coarse 0.5 mrad; stage 0–25 mm, fine 0.05 µm, coarse 10 µm, starts at 12.5 mm |
 | 反射鏡 M2 (the same mirror and mount, no stage) | on a hole; heading in 45° steps | horizontal and vertical tilt knobs | as M1 |
@@ -69,10 +71,10 @@ Rules:
 
 ### 3.4 Interaction
 
-- **Camera:** as Experiment 1. Presets: 全景 Overview (looking down at the whole table), 光源 Source (the iris face), 分光鏡 Beam splitter, 屏幕 Screen.
+- **Camera:** as Experiment 1. Presets: 全景 Overview (looking down at the whole table), 光源 Source (laser to lens), 分光鏡 Beam splitter, 屏幕 Screen.
 - **Placing and moving:** drag a part from the rack or the table; it follows the pointer and snaps to the hole under it (lenses: to the hole row under it, in 1 mm steps along the row); release to place. A refused spot (overlap, off the table) snaps back. On touch: tap a part, then tap a hole.
 - **Turning:** ⟲ / ⟳ buttons next to the selected part (and the R key) turn it by 45°.
-- **Panel alternatives** for keyboard and no-WebGL use: 放上 Place (the part's layout-guide position, §3.6, or the nearest free hole to it), hole column / row steppers (±1 hole; lenses ±1 mm along the row, ±1 row across), ⟲ / ⟳, 移除 Remove.
+- **Panel alternatives** for keyboard and no-WebGL use: 放上 Place (the beam splitter and the screen: their layout-guide position, §3.6; mirrors and lenses: 150 mm from the beam splitter on their rows, for the student to move on; or the nearest free hole to it), hole column / row steppers (±1 hole; lenses ±1 mm along the row, ±1 row across; holding a stepper repeats it, after 400 ms every 70 ms), ⟲ / ⟳, 移除 Remove.
 - **Knobs:** as Experiment 1 (dial, −/+ with fine / coarse, hold to repeat, arrow keys).
 - **Tap the table:** a 輕拍桌面 Tap the table button (from step 3) makes the fringes shake and settle (§4.9).
 
@@ -81,61 +83,63 @@ Rules:
 Checks are evaluated continuously; 下一步 Next is enabled while all of the current step's checks pass. Step ids: `miStart`, `mi1` … `mi4`, `miDone` (i18n keys `step.<id>.…`, questions `question.mi1` … `question.mi5`).
 
 **開始 Start** (`miStart`)
-- Do: turn on the laser. The light source is already aligned as in Experiment 1. Never look into the beam.
+- Do: turn on the laser. The light source is Experiment 1's finished expander, already aligned; Aperture 1's opening can be set. Never look into the beam.
 - Check: laser on.
 
 **步驟1 分光鏡 — Step 1: beam splitter** (`mi1`)
-- Do: close the iris to the minimum. Put the beam splitter on a hole in the beam's row and turn it to about 45°: the reflected spot appears on a perpendicular row. Put the screen on that row near the beam splitter, then farther away, and turn and tilt the beam splitter until the spot stays on the target centre at every hole: the reflected beam then runs along the hole row, level with the table. The transmitted beam keeps the source's row.
+- Do: close Aperture 1 to the minimum. Put the beam splitter on a hole in the beam's row and turn it to about 45°: the reflected spot appears on a perpendicular row. Put the screen on that row near the beam splitter, then farther away, and turn and tilt the beam splitter until the spot stays on the target centre at every hole: the reflected beam then runs along the hole row, level with the table. The transmitted beam keeps the source's row.
 - Checks:
-  1. `irisClosed` — iris opening ≤ 1.5 mm.
+  1. `irisClosed` — Aperture 1 opening ≤ 1.5 mm.
   2. `bsOnBeam` — the beam hits the beam splitter within 2 mm of its centre.
   3. `along` — the reflected beam runs along a hole row: within 1 mrad of the row direction, and within 1 mrad of level.
   4. `cardTested` — during this step the screen caught the reflected beam at two places at least 150 mm apart along it.
-- Hints: (1) close the iris; the beam runs along the centre row, so the beam splitter goes on a hole in that row; (2) at 45° the reflected beam leaves along a perpendicular row; (3) slide the screen along that row: a spot that drifts sideways means turn the beam splitter, a spot that drifts up or down means tilt it; (4) when the spot stays on the target centre near and far, the reflected beam runs along the holes.
+- Hints: (1) close Aperture 1; the beam runs along the centre row, so the beam splitter goes on a hole in that row; (2) at 45° the reflected beam leaves along a perpendicular row; (3) slide the screen along that row: a spot that drifts sideways means turn the beam splitter, a spot that drifts up or down means tilt it; (4) when the spot stays on the target centre near and far, the reflected beam runs along the holes.
 
 **步驟2 反射鏡 — Step 2: mirrors** (`mi2`)
-- Do: put M1 on the transmitted beam's row and M2 on the reflected beam's row, the same number of holes from the beam splitter. Each mirror sits slightly crooked: turn its knobs until its reflected spot comes back onto the iris hole (the iris close-up labels the two spots 1 and 2); the light then returns into the laser.
+- Do: first move the screen off the reflected beam's row (for example to the fourth side of the beam splitter). Put M1 on the transmitted beam's row and M2 on the reflected beam's row, each 30 cm (12 holes) from the beam splitter: Place puts a mirror 15 cm away and the student moves it on, reading its distance from the beam splitter (§3.8). Each mirror sits slightly crooked: turn its knobs until its reflected spot comes back onto Aperture 1's hole (the close-up labels the two spots 1 and 2); the light then goes back through the lens to the pinhole.
 - Checks:
   1. `onBeams` — one mirror on each arm, each hit within 3 mm of its centre.
-  2. `equalArms` — the two beam-splitter-to-mirror distances differ by at most 12.5 mm (the same hole count).
-  3. `returned` — with the iris still closed (≤ 1.5 mm), both reflected spots land within 0.5 mm of the iris hole centre.
-- Hints: (1) count the holes from the beam splitter to each mirror; (2) look at the iris close-up: spot 1 is M1's, spot 2 is M2's; (3) a spot to one side means turn that mirror's horizontal knob, a spot above or below means its vertical knob; (4) both spots on the hole: both beams go back exactly the way they came.
+  2. `armLength` — each beam-splitter-to-mirror distance, along the beam, is 300 ± 12.5 mm (12 holes), which also makes the arms equal.
+  3. `returned` — with Aperture 1 still closed (≤ 1.5 mm), both reflected spots land within 0.5 mm of its hole centre.
+- Hints: (1) 30 cm is 12 holes: count them, or read the distances to the beam splitter; (2) look at the Aperture 1 close-up: spot 1 is M1's, spot 2 is M2's; (3) a spot to one side means turn that mirror's horizontal knob, a spot above or below means its vertical knob; (4) both spots on the hole: both beams go back exactly the way they came.
 
 **步驟3 干涉條紋 — Step 3: fringes** (`mi3`)
-- Do: open the iris and put the screen at the fourth side of the beam splitter, facing it, where both returning beams leave together. Fine-tune M1's knobs until a few broad, straight fringes cross the spot. (Perfectly parallel beams give a uniform spot.) M1's micrometer makes the fringes scroll: one fringe for every λ/2 of mirror travel.
+- Do: open Aperture 1 and put the screen at the fourth side of the beam splitter, facing it, where both returning beams leave together. Fine-tune M1's knobs until a few broad, straight fringes cross the spot. (Perfectly parallel beams give a uniform spot.) M1's micrometer makes the fringes scroll: one fringe for every λ/2 of mirror travel.
 - Checks:
-  1. `irisOpen` — iris opening ≥ 8 mm.
+  1. `irisOpen` — Aperture 1 opening ≥ 8 mm.
   2. `screenOut` — both returning beams land on the screen.
   3. `overlap` — their centres on the screen are within 1 mm of each other.
   4. `visible` — fringe contrast V ≥ 0.5 (§4.5).
   5. `spacing` — straight-fringe spacing between 1 and 5 mm.
 - Think cards: handout questions (1) the conditions for two beams to interfere; (2) whether perfectly parallel, overlapping beams show fringes without lenses, and how to get straight fringes; (4) what tapping the table does to the fringes (with the Tap the table button).
-- Hints: (1) open the iris; (2) the combined beam leaves the beam splitter on the side opposite M2; (3) many thin fringes mean the beams cross at too large an angle: make them more parallel with M1's fine steps; (4) no fringes at all: the beams are exactly parallel, so tilt M1 a little; or the arms differ by more than the coherence length, so count the holes again.
+- Hints: (1) open Aperture 1; (2) the combined beam leaves the beam splitter on the side opposite M2; (3) many thin fringes mean the beams cross at too large an angle: make them more parallel with M1's fine steps; (4) no fringes at all: the beams are exactly parallel, so tilt M1 a little; or the arms differ by more than the coherence length, so count the holes again.
 
 **步驟4 環狀干涉 — Step 4: ring fringes** (`mi4`)
-- Do: put a 100 mm lens in each arm, between the beam splitter and the mirror, and slide it along the row. About one focal length (10 cm) from the mirror the light focuses on the mirror and rings appear on the screen once the two lenses sit at slightly different distances.
+- Do: put a 100 mm lens in each arm, between the beam splitter and the mirror, and slide it along the row (Place puts it 150 mm from the beam splitter; the move buttons repeat while held). About one focal length (10 cm) from the mirror, 20 cm from the beam splitter as the distance readout shows, the light focuses on the mirror and rings appear on the screen once the two lenses sit at slightly different distances.
 - Checks:
   1. `lensesIn` — one lens in each arm between the beam splitter and the mirror, the beam within 1 mm of its centre.
   2. `focusOnMirror` — each lens 100 ± 10 mm from its mirror, along the beam.
   3. `rings` — at least 3 rings across the spot, with the ring centre inside the spot (§4.5).
 - Think cards: handout questions (3) Fizeau, Mach–Zehnder and Sagnac interferometers; (5, challenge) how the Michelson differs from the Mach–Zehnder.
-- Hints: (1) one lens per arm, centred on the beam; (2) about 10 cm from the mirror the focus lands on the mirror; (3) both lenses at exactly the same distance give no rings: move one by 1–2 mm; (4) more rings mean a bigger difference between the two lens distances.
+- Hints: (1) one lens per arm, centred on the beam; (2) about 10 cm from the mirror (about 20 cm from the beam splitter) the focus lands on the mirror; (3) both lenses at exactly the same distance give no rings: move one by 1–2 mm; (4) more rings mean a bigger difference between the two lens distances.
 
 **完成 Done** (`miDone`)
 - Summary: the layout matches the handout's Fig. 16-3; time taken; number of warnings. Button: restart with a new random setup.
 
 ### 3.6 Tips when lost
 
-The 提示 Hint button first shows a **tip about what is wrong right now**, computed from the bench, then the step's general hints one at a time. After the last hint a 版面參考 **Layout guide** toggle draws the standard arrangement as faint outlines on the table: beam splitter at z = 300 mm on row x = 0 (reflecting toward +x), M1 at z = 500 mm on row x = 0, M2 at x = +200 mm on row z = 300 mm, screen at x = −250 mm on row z = 300 mm, and in step 4 the lenses 100 mm from each mirror. In step 1 the screen's guide position is the alignment card on the reflected row instead (x = +100 mm on row z = 300 mm, facing the beam splitter); from step 2 it is the output position. The panel's Place button uses the same positions. The first matching tip is shown, for example:
+The 提示 Hint button first shows a **tip about what is wrong right now**, computed from the bench, then the step's general hints one at a time. After the last hint a 版面參考 **Layout guide** toggle draws the standard arrangement as faint outlines on the table: beam splitter at z = 300 mm on row x = 0 (reflecting toward +x), M1 at z = 600 mm on row x = 0, M2 at x = +300 mm on row z = 300 mm, screen at x = −250 mm on row z = 300 mm, and in step 4 the lenses 100 mm from each mirror (z = 500 mm; x = +200 mm). In step 1 the screen's guide position is the alignment card on the reflected row instead (x = +100 mm on row z = 300 mm, facing the beam splitter); from step 2 it is the output position. The panel's Place button uses the same positions for the beam splitter and the screen; mirrors and lenses it puts 150 mm from the beam splitter on their rows (M1 and L1 at z = 450 mm, M2 and L2 at x = +150 mm), and the student moves them on. The first matching tip is shown, for example:
 
 | Step | Situation | Tip (zh) |
 |---|---|---|
 | 1 | the beam misses the beam splitter | 光束沿著中央那排孔前進，把分光鏡放在這一排的孔上。 |
 | 1 | the reflected beam is off its row by θ | 反射光偏離孔排 {θ} mrad：左右偏用旋轉旋鈕，上下偏用俯仰旋鈕。 |
 | 1 | the card has not been tried near and far | 把屏幕放在反射光那排孔上，先靠近分光鏡，再移遠至少 150 mm。 |
+| 2 | the screen stands across an arm, closer to the beam splitter than 312.5 mm (often the step-1 card, where M2 goes; a mirror placed in front of it cannot get past it) | 屏幕還擋在一臂的光路上：先把它移開，例如放到分光鏡的第四邊（M2 的對面）。 |
 | 2 | a mirror is off its beam by d | {mirror} 離光束 {d} mm，把它移到光束經過的那排孔上。 |
-| 2 | the arms differ by n holes | 兩臂相差 {n} 個孔位，數一數孔，讓兩面鏡子離分光鏡一樣遠。 |
-| 2 | a reflected spot is off the iris hole | {mirror} 的反射光點偏離光圈中心 {d} mm，調整它的{knob}旋鈕。 |
+| 2 | a mirror is d from the beam splitter, not 300 ± 12.5 mm | {mirror} 離分光鏡 {d} mm，應該在 300 mm（12 個孔）：沿著光束那排孔移動它。 |
+| 2 | a mirror's light no longer comes back to Aperture 1 (a knob turned too far) | {mirror} 歪太多，反射光回不到分光鏡和光圈1：把它的旋鈕慢慢往回轉，直到光圈1 特寫裡出現它的光點。 |
+| 2 | a reflected spot is off the hole | {mirror} 的反射光點偏離光圈1 中心 {d} mm，調整它的{knob}旋鈕。 |
 | 3 | the fringes are finer than 1 mm | 條紋太密（{s} mm），用 M1 的微調讓兩道光更平行。 |
 | 3 | the beams are almost exactly parallel | 兩道光幾乎完全平行，所以看不到條紋：把 M1 稍微轉一點。 |
 | 3 | the contrast is low | 兩臂光程差 {dl} mm，超過同調長度：數孔位，或用 M1 的測微頭。 |
@@ -160,10 +164,11 @@ A warning shows once and re-arms when its condition stops being true, as in Expe
 - 條紋對比 Fringe contrast V (0–1).
 - 條紋間距 Fringe spacing (mm), or 「—」 when there are no straight fringes.
 - 環數 Rings (count), once a lens is on the table.
+- {part} 到分光鏡 {part} to beam splitter (mm, whole millimetres), one line for each placed mirror and lens while the beam splitter is placed: the horizontal distance from the beam splitter's centre to the part (M1 with its stage).
 
 ### 3.9 Close-up insets
 
-- **Iris face (光圈正面):** the iris plate and hole (Experiment 1's iris close-up) with each reflected spot drawn where it lands, labelled 1 (from M1) and 2 (from M2). Open by default in steps 1–2.
+- **Aperture 1 (光圈1（返回光點）):** Aperture 1's plate and hole (Experiment 1's iris close-up) with each reflected spot drawn where it lands, labelled 1 (from M1) and 2 (from M2). Open by default in steps 1–2.
 - **Screen (觀測屏幕):** the computed fringe image (§4.8) with the mm ruler and the target paper. Open by default from step 1 (it doubles as the alignment-card view).
 
 ### 3.10 Visual style
@@ -193,7 +198,7 @@ Internal units are SI. Constants live in `js/michelson/config.js`; shared optics
 | Quantity | Value |
 |---|---|
 | Wavelength λ | 532 nm |
-| Source beam | collimated Gaussian, field radius W = 11.1 mm, along x = 0 at y = 100 mm, clipped by the iris (radius a = opening / 2) at z = −25 mm |
+| Source beam | collimated Gaussian leaving the source lens (z = −70 mm), field radius W = 11.1 mm, along x = 0 at y = 100 mm. Aperture 1, halfway between the pinhole and the lens, passes the part of the expanding cone inside its hole; at the lens that part is twice as wide, so the beam is clipped at radius a = min(opening, 11.45 mm), the lens's clear aperture |
 | Beam splitter | thin plate, intensity reflectance R = 0.5 and transmittance T = 0.5, Ø 25.4 mm |
 | Mirrors | reflectance 1, Ø 25.4 mm |
 | Lenses | thin, f = 100 mm, clear aperture Ø 48 mm |
@@ -202,19 +207,19 @@ Internal units are SI. Constants live in `js/michelson/config.js`; shared optics
 
 Hidden hand errors, drawn once per run from the seeded generator (`?seed=` reproduces a run), each with a random sign:
 - beam splitter heading U(0.5°, 2°) and tilt U(0.1°, 0.5°);
-- M1 and M2: horizontal and vertical tilt U(0.2°, 1°) each.
+- M1 and M2: horizontal and vertical tilt U(0.2°, 0.6°) each (revised from 1°: light from a mirror 300 mm away must still pass the 45° beam splitter, Ø 25.4 mm but only 18 mm wide seen along an arm, so both reflected spots show on Aperture 1 at the start of step 2).
 
 All lie inside the knob ranges, so every run is solvable.
 
 ### 4.2 Ray tracing (centre rays)
 
-Each beam is traced as a centre ray in 3D, starting at the iris, (x, y, z) = (0, 100 mm, −25 mm), going +z, with power 1 × the iris transmission (Experiment 1 §4.7, Gaussian through a hole).
-- Every placed part is a plane through its position, with a normal from its heading, hand error and knobs, holding an optic aperture (a disc; the screen's is its 150 mm square) inside its mount face. A ray meets the nearest part plane ahead of it whose mount face it hits; inside the optic aperture the part acts on it, outside it the ray stops on the mount.
+Each beam is traced as a centre ray in 3D, starting at the source lens, (x, y, z) = (0, 100 mm, −70 mm), going +z, with power 1 × the transmission of Aperture 1 and the lens rim (Experiment 1 §4.7, the Gaussian through a hole of radius a).
+- Every placed part is a plane through its position, with a normal from its heading, hand error and knobs, holding an optic aperture (a disc; the screen's is its 150 mm square) inside its mount face. A ray meets the nearest part plane ahead of it whose mount face it hits; inside the optic aperture the part acts on it, outside it the ray stops on the mount. A part whose mount is no larger than its optic (the source lens) has no mount: outside the optic the ray passes by.
 - **Beam splitter:** the ray splits into a reflected child (direction d − 2(d·n)n, power × R) and a transmitted child (direction unchanged, power × T).
 - **Mirror:** reflection; a tilt error ε turns the beam by 2ε.
 - **Lens:** thin-lens deflection of the direction by −(p − c)/f in the lens plane (paraxial), where p is the hit point and c the lens centre.
 - **Screen:** the ray stops; its hit point is recorded in card coordinates (u to the right and v up as seen facing the card).
-- **Iris and source face (returning rays):** the ray stops on the source face, a 60 mm square around the iris; its offset from the hole centre is recorded for the iris close-up, which draws the whole face, so a spot that misses the iris itself (a mirror up to 1° off in both tilts) still shows. Light through the hole returns into the laser and is not traced further.
+- **Source lens and Aperture 1 (returning rays):** a returning ray inside the source lens's 22.9 mm aperture is deflected like any lens, converging toward the pinhole; one outside it passes beside it. The ray then stops on Aperture 1's face, a 60 mm square around the hole; its offset from the hole centre is recorded for the close-up, which draws the whole face, so a spot that misses Aperture 1's plate still shows. A mirror tilted by ε at distance L (along the beam) from the lens puts its spot 2ε·(L·(1 − d/f) + d) from the hole centre, with d = 100 mm (lens to Aperture 1) and f = 200 mm. Light through the hole returns toward the pinhole and is not traced further.
 - Rays also stop when they leave the breadboard, fall below 1 % power, or after 8 interactions.
 - Each ray keeps its optical path length from the beam-splitter split point (for the arms) and its path signature.
 
@@ -245,13 +250,13 @@ Fringe numbers for the checks and readouts, from the two arm rays:
 - ring count N = a_s² · |1/R_1 − 1/R_2| / (2λ), with a_s the smaller spot radius on the screen;
 - ring centre s*: where ∇(φ_1 − φ_2) = 0, i.e. (t_1 − t_2) + (s* − c_1)/R_1 − (s* − c_2)/R_2 = 0; "inside the spot" means |s* − c| < a_s with c the mean of the two hit points.
 
-### 4.6 Reflected spots on the iris
+### 4.6 Reflected spots on Aperture 1
 
-The returning arm rays cross the beam splitter again; the halves heading back to the source land on the iris plane. Their offsets from the hole centre and their spot radii feed the iris close-up and the `returned` check.
+The returning arm rays cross the beam splitter again; the halves heading back to the source pass the source lens (§4.2) and land on Aperture 1's plane. Their offsets from the hole centre and their spot radii feed the Aperture 1 close-up and the `returned` check.
 
 ### 4.7 Beam drawing
 
-The traced rays become the glowing segments of Experiment 1's beam view (start, end, radius from §4.3, power), outgoing and returning. Spots where rays end (screen, iris, mounts, table edge) are drawn on the surface they hit, facing along its normal.
+The source is drawn, not traced: the 0.5 mm laser beam into the objective (9 mm before the pinhole), its focus on the pinhole, the cone opening to Aperture 1 (radius W/2 there), and the part Aperture 1 passes, opening to twice its radius at the lens. The traced rays then become the glowing segments of Experiment 1's beam view (start, end, radius from §4.3, power), outgoing and returning. Spots where rays end (screen, iris, mounts, table edge) are drawn on the surface they hit, facing along its normal.
 
 ### 4.8 Screen image
 
@@ -263,7 +268,7 @@ Experiment 1's renderer draws I(s) on the 256 × 256 window (2.5 × the combined
 
 ### 4.10 Stated simplifications
 
-Thin beam splitter (no plate offset, ghosts or dispersion); thin lenses without aberrations; clipping without diffraction rings; geometric beam spread outside foci; scalar, monochromatic light with a smooth Gaussian spectrum (no laser mode revivals); a mirror's tilt does not shift its surface; parts stand perfectly upright apart from the listed tilts.
+Thin beam splitter (no plate offset, ghosts or dispersion); thin lenses without aberrations; clipping without diffraction rings; geometric beam spread outside foci; scalar, monochromatic light with a smooth Gaussian spectrum (no laser mode revivals); a mirror's tilt does not shift its surface; parts stand perfectly upright apart from the listed tilts; the source lens has no mount, so returning light beside it reaches Aperture 1's face unfocused.
 
 ## 5. Architecture
 
@@ -278,7 +283,8 @@ eo-lab-web/
       config.js               every Michelson constant and tolerance in this spec
       state.js                parts on holes, headings, hand errors, knob values, placement rules
       bench.js                michelsonBench(state) → everything observable
-      steps.js                STEPS, checks, hints, tips, warnings, card-trial tracking
+      steps.js                STEPS, checks, hints, warnings, card-trial tracking, layout-guide and Place spots
+      tips.js                 the tip for what is wrong right now (§3.6)
     optics/
       tracer.js               3D centre-ray tracing through posed parts (§4.2–4.3); reusable for Mach–Zehnder
       interference.js         sampler for I(s) and the fringe numbers (§4.4–4.5)
@@ -297,10 +303,12 @@ Changed, backward-compatibly:
 - `js/ui/panel.js` — `renderTip` (the tip line under the hint button).
 - `js/scene/view.js` — custom camera presets and a world point to look at.
 - `js/scene/models.js` — `createScreenModel` with a pixel mapping; `buildLaser` exported.
+- `js/ui/controls.js` — `createButton({ repeat })`: press-and-hold repeats; a click no press started (keyboard, script) acts once.
+- `js/optics/tracer.js` — (revision) a part with no mount around its optic lets rays beside it pass.
 - `css/style.css` — the tip line, the placement buttons, and the close-up toggles on a line of their own on narrow screens.
 - `tests/page.js` — the iframe page loader, shared by the two page tests.
 
-Reused unchanged: `js/optics/{config,gaussian,iris}.js`, `js/ui/{controls,toast,clock,target}.js`, `js/scene/{interact,webgl}.js` and the Experiment 1 part models.
+Reused unchanged: `js/optics/{config,gaussian,iris}.js`, `js/ui/{toast,clock,target}.js`, `js/scene/{interact,webgl}.js` and the Experiment 1 part models.
 
 **Data flow:** as Experiment 1: UI or 3D input → `state.js` → `michelsonBench(state)` → scene, close-ups, panel, checks. `steps.js` evaluates checks from (state, result, flow), warnings from (flow, previous state, state, result), and records card trials from each result.
 
@@ -308,7 +316,8 @@ Reused unchanged: `js/optics/{config,gaussian,iris}.js`, `js/ui/{controls,toast,
 - `createMichelsonState(seed)`; `placePart(state, id, hole, heading)`; `movePart`; `turnPart`; `removePart`; `setValue(state, path, value)` — every update returns a new state; a refused update returns the same object.
 - `trace(source, parts) → { rays, hits }` — each ray: points, direction, power, OPL, signature, ray matrix, end (screen, iris, part, edge).
 - `interferenceSampler(beams, { coherenceLength, pixel, extraPhase }) → (u, v) => intensity`; `fringeNumbers(beamA, beamB, coherenceLength) → { contrast, alpha, spacing, rings, centre }`.
-- `michelsonBench(state, { render, tapPhase }) → { laserOn, rays, segments, spots, iris: { spots }, screen: { window, card, beams }, fringe, power, arms }`.
+- `michelsonBench(state, { render, tapPhase }) → { laserOn, rays, segments, spots, iris: { spots }, screen: { window, card, beams }, fringe, power, arms }`; `distanceToBs(state, id)` → metres or null.
+- `guideFor(id, stepId)`, `placeFor(id, stepId)` → `{ pos, heading }` (the layout guide; where Place puts a part).
 - `STEPS`, `evaluateChecks`, `canAdvance`, `advance`, `detectWarnings`, `observe(flow, result)` (card trials), `tipFor(flow, state, result) → { key, params }`.
 
 **Performance budget:** `michelsonBench` under 10 ms (no Fourier transforms); a full redraw under 16 ms; tap-the-table animation at the display rate.
@@ -322,6 +331,7 @@ TDD with the existing headless runner (`python tools/run_tests.py`); Experiment 
 2. A beam splitter at 45° sends the reflected child at 90° and keeps the transmitted direction; powers 0.5 / 0.5.
 3. Thin-lens deflection −(p − c)/f; a lens at f + δ from a mirror gives the double-pass matrix A = −1 − 2δ/f, C = 2δ/f² (±1e-9).
 4. Rays end on the screen, the iris, the table edge, or after 8 interactions.
+5. (Revision) A part whose mount is no larger than its optic lets rays outside the optic pass by.
 
 **Interference** (`tests/optics/interference.test.js`):
 1. Two equal collimated beams with relative tilt α: the fringe period measured in the rendered profile is λ/α (±2 %).
@@ -332,10 +342,13 @@ TDD with the existing headless runner (`python tools/run_tests.py`); Experiment 
 **State** (`tests/michelson/state.test.js`): hole snapping and lens 1 mm slides; refused overlaps and off-table spots; hand errors within their ranges for 200 seeds; the same seed gives the same state; updates never mutate their input.
 
 **Bench and steps** (`tests/michelson/bench.test.js`, `steps.test.js`):
-- The standard layout with corrected knobs gives zero path difference, overlapping spots and returned spots on the iris hole.
-- Each check fails for its typical mistake: the beam splitter off the beam row; the reflected beam 2 mrad off its row; M2 one hole farther than M1 (no fringes); a mirror 1 mrad off (spot off the iris hole); beams exactly parallel (no straight fringes); both lenses at 100 mm (no rings).
-- Ideal actions complete every step for five seeds.
+- The standard layout with corrected knobs gives 300 mm arms, zero path difference, overlapping spots and returned spots on the Aperture 1 hole.
+- (Revision) The source is drawn from the laser; Aperture 1's 1 mm hole gives a 2 mm beam at the lens; wide open, the lens rim sets the beam. A mirror 1 mrad off puts its spot 2ε·(L·(1 − d/f) + d) from the hole. At the start of step 2 both reflected spots land on Aperture 1's plate (100 seeds). Distances to the beam splitter follow M1's stage.
+- Each check fails for its typical mistake: the beam splitter off the beam row; the reflected beam 2 mrad off its row; M2 one hole farther than M1, or both mirrors where Place leaves them (150 mm); a mirror 1 mrad off (spot off the hole); beams exactly parallel (no straight fringes); both lenses at 100 mm (no rings).
+- Ideal actions complete every step for five seeds, placing each mirror and lens from the panel and moving it on, after moving the step-1 card out of M2's arm.
 - Card trials need two places at least 150 mm apart; warnings fire and re-arm; tips match their situations.
+
+**Controls** (`tests/ui/controls.test.js`, revision): a repeating button acts on press, repeats while held, stops on release, and acts once on a keyboard or script click.
 
 **Page** (`tests/michelson-app.test.js`): boots without errors, turns the laser on, advances to step 1, places the beam splitter with the panel controls. The lobby test checks the Michelson card links to `michelson.html`. The i18n test checks every Michelson step, check, hint, question, tip and warning key exists in both languages.
 
@@ -343,7 +356,7 @@ TDD with the existing headless runner (`python tools/run_tests.py`); Experiment 
 
 ## 7. Hosting and repository
 
-Same repository and GitHub Pages site as Experiment 1. Work happens on branch `feat/michelson` and reaches `main` through a pull request; a merge redeploys the site.
+Same repository and GitHub Pages site as Experiment 1. Work happens on branch `feat/michelson` (the revisions on `feat/michelson-revisions`) and reaches `main` through a pull request; a merge redeploys the site.
 
 ## 8. Assumptions to confirm
 
