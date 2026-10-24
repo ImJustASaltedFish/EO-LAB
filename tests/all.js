@@ -25,4 +25,5 @@ import './ui/panel.test.js';
 import './ui/clock.test.js';
 import './ui/target.test.js';
 import './app.test.js';
+import './michelson-app.test.js';
 import './lobby.test.js';
