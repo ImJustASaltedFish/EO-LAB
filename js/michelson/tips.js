@@ -25,19 +25,32 @@ function stepOne(state, result, flow) {
   return null;
 }
 
+// The screen standing across an arm, short of where the arm's mirror belongs (a mirror in front of it still cannot
+// get past it). The step-1 card is often left on the reflected row, where M2 goes.
+function cardInArm(state, armRays) {
+  const card = state.parts.screen;
+  return card.placed && armRays.some((ray) => {
+    const along = (card.pos.x - ray.start.x) * ray.direction.x + (card.pos.z - ray.start.z) * ray.direction.z;
+    return along > 0 && along < C.mi2.armLength + C.mi2.armTol && offLine(card.pos, ray) < MI.screen.size / 2;
+  });
+}
+
 function stepTwo(state, result) {
   const arms = [result.arms.T, result.arms.R].filter(Boolean);
   const armRays = result.rays.filter((r) => r.path.length === 1 && (r.path[0] === 'bs:T' || r.path[0] === 'bs:R'));
+  if (cardInArm(state, armRays)) return { key: 'tip.mi2.cardInArm' };
   for (const m of ['m1', 'm2']) {
     if (!state.parts[m].placed) continue;
     const arm = arms.find((a) => a.mirror === m);
     const d = arm ? arm.offset : Math.min(...armRays.map((ray) => offLine(state.parts[m].pos, ray)));
     if (d > C.mi2.mirrorCentreTol) return { key: 'tip.mi2.mirrorOff', params: { mirror: NAMES[m], d: mm(d) } };
   }
-  const { T, R } = result.arms;
-  if (T?.mirror && R?.mirror && Math.abs(T.length - R.length) > C.mi2.armTol) {
-    return { key: 'tip.mi2.arms', params: { n: Math.round(Math.abs(T.length - R.length) / MI.table.pitch) } };
-  }
+  const onArms = arms.filter((arm) => arm.mirror);
+  const misplaced = onArms.find((arm) => Math.abs(arm.length - C.mi2.armLength) > C.mi2.armTol);
+  if (misplaced) return { key: 'tip.mi2.armLength', params: { mirror: NAMES[misplaced.mirror], d: mm(misplaced.length, 0) } };
+  // A knob turned too far: that mirror's light no longer comes back through the beam splitter to Aperture 1.
+  const lost = onArms.find((arm) => !result.iris.spots.some((p) => p.mirror === arm.mirror));
+  if (lost) return { key: 'tip.mi2.spotLost', params: { mirror: NAMES[lost.mirror] } };
   const worst = [...result.iris.spots].sort((a, b) => Math.hypot(b.dx, b.dy) - Math.hypot(a.dx, a.dy))[0];
   if (worst && Math.hypot(worst.dx, worst.dy) > C.mi2.returnTol) {
     const key = Math.abs(worst.dx) >= Math.abs(worst.dy) ? 'tip.mi2.spotOffH' : 'tip.mi2.spotOffV';

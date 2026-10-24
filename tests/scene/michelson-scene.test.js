@@ -4,6 +4,7 @@ import { createView } from '../../js/scene/view.js';
 import { buildMichelsonTable, createMichelsonPart, createGhost, yawFor, rackSlot } from '../../js/scene/michelson-models.js';
 import { tableDrop } from '../../js/scene/table.js';
 import { createMichelsonState, PART_IDS } from '../../js/michelson/state.js';
+import { MI } from '../../js/michelson/config.js';
 
 test('michelson scene: the table, the ready source and every part build and render', () => {
   const host = document.createElement('div');
@@ -12,6 +13,10 @@ test('michelson scene: the table, the ready source and every part build and rend
   const view = createView(host);
   const table = buildMichelsonTable(view.scene);
   table.setIris(1e-3);
+  const source = ['laser', 'sf', 'a1', 'lens'].map((name) => table.root.getObjectByName(name));
+  assert(source.every(Boolean), 'laser, spatial filter, Aperture 1 and lens, as Experiment 1 leaves them');
+  assertClose(source[2].position.x, MI.source.a1Z, 1e-12, 'Aperture 1 between the pinhole and the lens');
+  assertEqual(table.root.getObjectByName('a2'), undefined, 'no exit iris');
   const parts = createMichelsonState(1).parts;
   for (const id of PART_IDS) {
     const model = createMichelsonPart(id);

@@ -67,7 +67,8 @@ export const STEPS = Object.freeze([
             && T.offset <= C.mi2.mirrorCentreTol && R.offset <= C.mi2.mirrorCentreTol;
         },
       },
-      { id: 'equalArms', test: (s, r) => Boolean(r.arms.T?.mirror && r.arms.R?.mirror) && Math.abs(r.arms.T.length - r.arms.R.length) <= C.mi2.armTol },
+      // Each mirror 300 mm (12 holes) from the beam splitter, which also makes the two arms equal.
+      { id: 'armLength', test: (s, r) => [r.arms.T, r.arms.R].every((arm) => arm?.mirror && Math.abs(arm.length - C.mi2.armLength) <= C.mi2.armTol) },
       {
         id: 'returned',
         test: (s, r) => s.iris.opening <= C.mi1.irisClosedMax
@@ -158,6 +159,12 @@ export const toggleGuide = (flow) => ({ ...flow, guideOn: !flow.guideOn });
 // Where the layout guide (and the panel's Place button) puts a part: in step 1 the screen is the alignment card.
 export function guideFor(id, stepId) {
   return id === 'screen' && stepId === 'mi1' ? MI.guide.card : MI.guide[id];
+}
+
+// Where the panel's Place button puts a part: mirrors and lenses short of where they belong (students move them on),
+// the beam splitter and the screen on the layout guide.
+export function placeFor(id, stepId) {
+  return MI.place[id] ?? guideFor(id, stepId);
 }
 
 export function isPartUnlocked(flow, id) {

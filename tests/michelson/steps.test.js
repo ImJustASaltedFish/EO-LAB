@@ -22,12 +22,14 @@ test('michelson steps: step 1 needs the reflected beam along a hole row and the 
   assertEqual(F.observe(flowAt('mi2'), michelsonBench(S.placePart(s, 'screen', { x: 0.1, z: 0.3 }, 6))).trials.max, -Infinity, 'only step 1 records card trials');
 });
 
-test('michelson steps: step 2 needs equal arms and both reflected spots on the iris hole', () => {
-  assertEqual(checkIds('mi2'), 'onBeams,equalArms,returned');
+test('michelson steps: step 2 needs each mirror 300 mm from the beam splitter and both reflected spots on the hole', () => {
+  assertEqual(checkIds('mi2'), 'onBeams,armLength,returned');
   const s = aligned(1, { opening: MI.iris.openingMin });
   const flow = flowAt('mi2');
   assert(F.canAdvance(flow, s, michelsonBench(s)), JSON.stringify(F.evaluateChecks(flow, s, michelsonBench(s))));
-  assert(!passes(flow, S.placePart(s, 'm2', { x: 0.225, z: 0.3 }), 'equalArms'), 'M2 one hole farther');
+  assert(!passes(flow, S.placePart(s, 'm2', { x: 0.325, z: 0.3 }), 'armLength'), 'M2 one hole farther');
+  const short = S.placePart(S.placePart(s, 'm1', MI.place.m1.pos), 'm2', MI.place.m2.pos);
+  assert(!passes(flow, short, 'armLength'), 'both where Place puts them: equal, but 150 mm');
   assert(!passes(flow, S.setValue(s, 'parts.m1.h', s.parts.m1.h + 1e-3), 'returned'), 'M1 1 mrad off');
   assert(!passes(flow, S.removePart(s, 'm2'), 'onBeams'), 'M2 missing');
 });
@@ -39,7 +41,7 @@ test('michelson steps: step 3 needs visible, broad straight fringes on the scree
   assert(!passes(flow, parallel, 'spacing'), 'exactly parallel beams show no fringes');
   const tilted = S.setValue(parallel, 'parts.m1.h', parallel.parts.m1.h + 0.1e-3);
   assert(F.canAdvance(flow, tilted, michelsonBench(tilted)), JSON.stringify(F.evaluateChecks(flow, tilted, michelsonBench(tilted))));
-  const far = S.placePart(tilted, 'm2', { x: 0.225, z: 0.3 });
+  const far = S.placePart(tilted, 'm2', { x: 0.325, z: 0.3 });
   assert(!passes(flow, far, 'visible'), 'arms one hole apart: no contrast');
 });
 
@@ -81,6 +83,9 @@ test('michelson steps: hints, tip and layout guide', () => {
   assert(!F.advance(F.toggleGuide(flow), aligned(), 0).guideOn, 'a new step starts without the guide');
   assertEqual(F.guideFor('screen', 'mi1'), MI.guide.card, 'in step 1 the screen goes on the reflected row');
   assertEqual(F.guideFor('screen', 'mi3'), MI.guide.screen, 'later at the output');
+  assertEqual(F.placeFor('m2', 'mi2'), MI.place.m2, 'Place puts a mirror short of its spot');
+  assertEqual(F.placeFor('lens1', 'mi4'), MI.place.lens1);
+  assertEqual(F.placeFor('screen', 'mi1'), MI.guide.card, 'and the beam splitter and screen on the guide');
 });
 
 // Play every step with ideal actions computed from the hidden errors: every random start must be solvable.
@@ -110,20 +115,25 @@ function solve(seed) {
   act(S.placePart(state, 'screen', { x: 0.3, z: 0.3 }, 6));
   finish('mi1');
 
+  // The card stands where M2 goes: move it out of the arm, to the output. Each part is placed from the panel,
+  // then moved on to where it belongs.
+  act(S.placePart(state, 'screen', g.screen.pos, g.screen.heading));
   for (const m of ['m1', 'm2']) {
-    act(S.placePart(state, m, g[m].pos, g[m].heading));
+    act(S.placeNear(state, m, MI.place[m].pos, MI.place[m].heading));
+    act(S.placePart(state, m, g[m].pos));
     act(S.setValue(state, `parts.${m}.h`, -state.hidden[`${m}H`]));
     act(S.setValue(state, `parts.${m}.v`, -state.hidden[`${m}V`]));
   }
   finish('mi2');
 
   act(S.setValue(state, 'iris.opening', MI.iris.openingMax));
-  act(S.placePart(state, 'screen', g.screen.pos, g.screen.heading));
   act(S.setValue(state, 'parts.m1.h', state.parts.m1.h + 0.1e-3));
   finish('mi3');
 
-  act(S.placePart(state, 'lens1', g.lens1.pos, g.lens1.heading));
-  act(S.placePart(state, 'lens2', g.lens2.pos, g.lens2.heading));
+  for (const lens of ['lens1', 'lens2']) {
+    act(S.placeNear(state, lens, MI.place[lens].pos, MI.place[lens].heading));
+    act(S.placePart(state, lens, g[lens].pos));
+  }
   act(S.movePartBy(state, 'lens2', 0, -0.001));
   finish('mi4');
   assertEqual(F.currentStep(flow).id, 'miDone');

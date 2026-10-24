@@ -89,10 +89,11 @@ export function buildMichelsonTable(scene) {
   rack.position.set(0.35, 0.005, T.xMin - 0.07);
   root.add(rack);
 
-  // The ready source on row x = 0: laser, spatial filter, collimating lens and iris on a short rail.
+  // The ready source on row x = 0, as Experiment 1 leaves it: laser, spatial filter, Aperture 1 and the collimating
+  // lens on a short rail.
   const railStart = MI.source.laserZ - 0.17;
-  const rail = box(MI.source.irisZ - railStart + 0.02, 0.008, 0.03, SHARED.rail);
-  rail.position.set((MI.source.irisZ + railStart) / 2, 0.004, 0);
+  const rail = box(MI.source.lensZ - railStart + 0.02, 0.008, 0.03, SHARED.rail);
+  rail.position.set((MI.source.lensZ + railStart) / 2, 0.004, 0);
   root.add(rail);
   const laser = buildLaser(root);
   laser.update({ height: MI.beamHeight });
@@ -103,8 +104,8 @@ export function buildMichelsonTable(scene) {
   const lens = createPartModel('lens');
   lens.group.position.x = MI.source.lensZ;
   lens.update({ height: MI.beamHeight }, {});
-  const iris = createPartModel('a2');
-  iris.group.position.x = MI.source.irisZ;
+  const iris = createPartModel('a1');
+  iris.group.position.x = MI.source.a1Z;
   root.add(filter.group, lens.group, iris.group);
   scene.add(root);
   return {
