@@ -6,6 +6,7 @@ import './optics/iris.test.js';
 import './optics/noise.test.js';
 import './optics/pinhole.test.js';
 import './optics/screen.test.js';
+import './optics/tracer.test.js';
 import './lab/state.test.js';
 import './optics/bench.test.js';
 import './lab/steps.test.js';
