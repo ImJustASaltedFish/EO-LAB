@@ -41,3 +41,14 @@ test('interact: drop targets are the rail band, the rack area, or nothing', () =
   assertEqual(dropTarget({ x: 0.3, z: 0.25 }).kind, 'cancel');
   assertEqual(dropTarget(null).kind, 'cancel');
 });
+
+test('scene: a spot with a surface normal faces along it, just in front of the surface', () => {
+  const scene = new THREE.Scene();
+  const beam = createBeamView(scene);
+  beam.update({ laserOn: true, segments: [], spots: [{ z: 0.3, x: -0.25, y: 0.1, radius: 2e-3, power: 0.25, normal: { x: 1, y: 0, z: 0 } }] });
+  const disc = beam.group.children[0];
+  assertClose(disc.position.z, -0.25 + 0.0012, 1e-9, 'offset toward +x (world Z)');
+  assertClose(disc.position.x, 0.3, 1e-9);
+  const facing = new THREE.Vector3(0, 0, 1).applyQuaternion(disc.quaternion);
+  assertClose(facing.z, 1, 1e-9, 'faces table +x');
+});

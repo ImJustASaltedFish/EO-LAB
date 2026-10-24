@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EO LAB · 邁克森干涉儀</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <script>
+    window.eolab = { ready: false, errors: [] };
+    window.addEventListener('error', (e) => window.eolab.errors.push(String(e.message || e)));
+    window.addEventListener('unhandledrejection', (e) => window.eolab.errors.push(String((e.reason && e.reason.message) || e.reason)));
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "./js/vendor/three.module.min.js", "three/addons/": "./js/vendor/addons/" } }
+  </script>
+</head>
+<body class="lab-page">
+  <header class="topbar">
+    <a class="topbar-back" href="./index.html" data-i18n="ui.back"></a>
+    <ol class="progress"></ol>
+    <div class="topbar-actions">
+      <span class="timer" role="timer">00:00</span>
+      <button type="button" class="lang-btn"></button>
+      <button type="button" class="restart-btn" data-i18n="ui.restart"></button>
+    </div>
+  </header>
+  <main class="lab">
+    <div class="viewport" id="viewport"></div>
+    <div class="nowebgl" hidden data-i18n="ui.noWebgl"></div>
+    <div class="camera-presets" id="camera-presets"></div>
+    <div class="insets" id="insets"></div>
+    <aside class="panel" id="panel"></aside>
+  </main>
+  <script type="module" src="./js/michelson-app.js"></script>
+</body>
+</html>

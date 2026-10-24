@@ -2,7 +2,7 @@ import { test, assert, assertEqual, assertClose, assertRelClose } from '../harne
 import { CONFIG } from '../../js/optics/config.js';
 import { createNoise } from '../../js/optics/noise.js';
 import {
-  toneMap, beamColour, cardPixel, screenWindow, rawBeamSampler, angularSampler,
+  toneMap, beamColour, cardPixel, brightPixel, screenWindow, rawBeamSampler, angularSampler,
   expandedPattern, gaussianSpotSampler, renderScreen,
 } from '../../js/optics/screen.js';
 
@@ -67,4 +67,10 @@ test('screen: raw beam shows the dust noise; a small hole shrinks the spot', () 
     pixels: 128,
   });
   assert(clipped.d4sigma < clean.d4sigma * 0.5, 'a small hole shrinks the spot');
+});
+
+test('screen: brightPixel lights the card linearly; cardPixel is brightPixel on the log curve', () => {
+  assertEqual(brightPixel(0).join(), '68,70,72');
+  assertEqual(brightPixel(1)[1], 255);
+  assertEqual(cardPixel(0.3).join(), brightPixel(toneMap(0.3)).join());
 });

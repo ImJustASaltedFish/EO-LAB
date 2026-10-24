@@ -1,6 +1,6 @@
 import { test, assert, assertClose } from '../harness.js';
 import { niceStep, drawApertureInset, drawPlaneAInset, drawScreenInset } from '../../js/ui/insets.js';
-import { renderScreen, gaussianSpotSampler } from '../../js/optics/screen.js';
+import { renderScreen, gaussianSpotSampler, brightPixel } from '../../js/optics/screen.js';
 
 const makeCanvas = () => {
   const c = document.createElement('canvas');
@@ -49,4 +49,16 @@ test('insets: the screen close-up shows the target paper around its centre', () 
   // 16 px per mm: a target centred 2 mm higher puts its horizontal line at y = 80 − 32 = 48.
   drawScreenInset(c, { window: shot }, { target: { x: 0, y: 0.102 } });
   assert(pixel(c, 70, 48)[1] < 0.6 * pixel(c, 70, 56)[1], 'the target follows its centre');
+});
+
+test('insets: an iris face shows several labelled spots; the screen close-up takes a pixel mapping', () => {
+  const c = makeCanvas();
+  // Spots 1.5 mm left and right: half-size 1.6·(1.5 + 0.5) = 3.2 mm → spot centres at 80 ∓ 37.5 px.
+  drawApertureInset(c, { r: 0.5e-3, outer: 0.025, beams: [{ dx: -1.5e-3, dy: 0, radius: 0.5e-3, label: '1' }, { dx: 1.5e-3, dy: 0, radius: 0.5e-3, label: '2' }] });
+  assert(pixel(c, 42, 80)[1] > 150 && pixel(c, 118, 80)[1] > 150, `both spots lit: ${pixel(c, 42, 80)} ${pixel(c, 118, 80)}`);
+  drawApertureInset(c, { r: 0.5e-3, outer: 0.025, beam: { dx: 1.5e-3, dy: 0, radius: 0.5e-3 } });
+  assert(pixel(c, 42, 80)[1] < 120, 'the single-beam form still works');
+  const flat = { image: new Float32Array(16).fill(1), pixels: 4, size: 0.01, centre: { x: 0, y: 0.1 } };
+  drawScreenInset(c, { window: flat }, { pixel: brightPixel });
+  assert(pixel(c, 80, 80)[1] === 255, 'brightness 1 maps straight to full green');
 });

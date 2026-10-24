@@ -57,3 +57,15 @@ test('panel: think cards stay open while the same step re-renders; last step sho
   assert(!root.querySelector('.summary-restart').hidden, 'restart offered');
   root.remove();
 });
+
+test('panel: a tip line shows under the hint button and hides again', () => {
+  const root = mount();
+  const panel = createPanel(root, { t, onNext() {}, onHint() {}, onRestart() {} });
+  const tip = root.querySelector('.tip');
+  assert(tip.hidden, 'hidden at first');
+  panel.renderTip('M2 is 40 mm from the beam');
+  assert(!tip.hidden && tip.textContent === 'M2 is 40 mm from the beam', 'shown');
+  panel.renderTip(null);
+  assert(tip.hidden, 'hidden again');
+  root.remove();
+});

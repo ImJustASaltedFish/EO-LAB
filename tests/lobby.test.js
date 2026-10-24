@@ -19,6 +19,7 @@ test('lobby: shows the experiment cards and switches language', async () => {
   assertEqual(doc.querySelector('h1').textContent, t('app.title'));
   assertEqual(doc.querySelectorAll('.card').length, 3);
   assert(doc.querySelector('.card a[href="./laser.html"]'), 'link to Experiment 1');
+  assert(doc.querySelector('.card a[href="./michelson.html"]'), 'link to the Michelson');
   const before = doc.querySelector('h1').textContent;
   doc.querySelector('.lang-btn').click();
   assert(doc.querySelector('h1').textContent !== before, 'title changes language');

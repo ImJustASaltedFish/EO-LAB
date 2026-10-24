@@ -8,6 +8,7 @@ export function createPanel(root, { t, onNext, onHint, onRestart }) {
       <h3 class="checklist-title"></h3>
       <ul class="checklist"></ul>
       <button type="button" class="hint-btn"></button>
+      <p class="tip" hidden></p>
       <ol class="hints"></ol>
       <div class="think"></div>
       <div class="summary" hidden></div>
@@ -116,6 +117,11 @@ export function createPanel(root, { t, onNext, onHint, onRestart }) {
     },
     setMoreVisible(visible) {
       q('.controls-more').hidden = !visible;
+    },
+    // A tip about what is wrong right now (Michelson), or null to hide it.
+    renderTip(text) {
+      q('.tip').hidden = !text;
+      q('.tip').textContent = text || '';
     },
     renderReadouts(items) {
       q('.readouts').replaceChildren(...items.flatMap(({ label, value }) => {

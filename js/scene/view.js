@@ -15,7 +15,8 @@ const PRESETS = {
 };
 const MAX_DISTANCE = 5;
 
-export function createView(container) {
+// `presets` replaces the Experiment 1 camera presets (the Michelson page has its own).
+export function createView(container, { presets = PRESETS } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -45,11 +46,13 @@ export function createView(container) {
   observer.observe(container);
   resize();
 
-  function setPreset(name, focusX) {
-    const base = PRESETS[name] ?? PRESETS.overview;
+  // `focus`: a rail z for the Experiment 1 'filter' and 'screen' presets, or a world point {x, y, z} to look at.
+  function setPreset(name, focus) {
+    const base = presets[name] ?? presets.overview;
     const preset = camera.aspect < 1 && base.portrait ? base.portrait : base;
-    const shift = focusX !== undefined && (name === 'filter' || name === 'screen') ? focusX - preset.target[0] : 0;
-    const target = new THREE.Vector3(preset.target[0] + shift, preset.target[1], preset.target[2]);
+    const target = new THREE.Vector3(...preset.target);
+    if (focus && typeof focus === 'object') target.set(focus.x, focus.y, focus.z);
+    else if (focus !== undefined && (name === 'filter' || name === 'screen')) target.x = focus;
     const offset = new THREE.Vector3(...preset.position).sub(new THREE.Vector3(...preset.target));
     const halfFov = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect);
     const needed = preset.halfWidth / Math.tan(halfFov);

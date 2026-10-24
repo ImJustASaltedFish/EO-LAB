@@ -19,10 +19,15 @@ export function beamColour(v) {
 
 const CARD_BASE = [68, 70, 72];
 
-// A white card in a dim lab, lit by the green beam.
-export function cardPixel(relative) {
-  const [r, g, b] = beamColour(toneMap(relative));
+// A white card in a dim lab, lit to brightness v (0–1) with no tone curve (the Michelson fringes).
+export function brightPixel(v) {
+  const [r, g, b] = beamColour(v);
   return [Math.min(255, CARD_BASE[0] + r), Math.min(255, CARD_BASE[1] + g), Math.min(255, CARD_BASE[2] + b)];
+}
+
+// A white card in a dim lab, lit by the green beam (relative intensity through the log tone curve).
+export function cardPixel(relative) {
+  return brightPixel(toneMap(relative));
 }
 
 export function screenWindow(expectedDiameter) {

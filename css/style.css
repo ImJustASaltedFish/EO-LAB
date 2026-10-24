@@ -135,3 +135,11 @@ button.pressed { color: var(--pass); border-color: var(--pass); }
 .controls-guide { padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .controls-guide h2 { margin: 0 0 8px; font-size: 16px; }
 .controls-guide p { margin: 6px 0; line-height: 1.6; color: var(--text-dim); }
+
+/* Michelson: the tip about what is wrong right now, and the placement buttons */
+.tip { margin: 8px 0 0; padding: 8px 10px; border-left: 3px solid var(--warn); border-radius: 6px; background: var(--surface-2); line-height: 1.5; }
+.place-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.place-row .button { padding: 4px 8px; font-size: 13px; }
+@media (max-width: 767px) {
+  .inset-toggles { flex-basis: 100%; }   /* the close-up toggles always get a line of their own */
+}
