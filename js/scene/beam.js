@@ -3,6 +3,7 @@ import * as THREE from 'three';
 
 const MIN_RADIUS = 0.0006;
 const UP = new THREE.Vector3(0, 1, 0);
+const FACE = new THREE.Vector3(0, 0, 1);   // a circle geometry faces +Z
 
 export function beamOpacity(power) {
   return Math.min(0.85, Math.max(0.15, 0.15 + 0.7 * Math.max(0, power) ** 0.35));
@@ -57,8 +58,15 @@ export function createBeamView(scene) {
       }
       for (const spot of result.spots) {
         const disc = new THREE.Mesh(new THREE.CircleGeometry(Math.max(spot.radius, 0.001), 32), glowMaterial(beamOpacity(spot.power)));
-        disc.rotation.y = Math.PI / 2;
-        disc.position.set(spot.z - 0.0012, spot.y, spot.x);
+        if (spot.normal) {
+          // A spot on a surface facing anywhere (Michelson): `normal` in table axes, toward where the light came from.
+          const facing = new THREE.Vector3(spot.normal.z, spot.normal.y, spot.normal.x).normalize();
+          disc.quaternion.setFromUnitVectors(FACE, facing);
+          disc.position.set(spot.z, spot.y, spot.x).addScaledVector(facing, 0.0012);
+        } else {
+          disc.rotation.y = Math.PI / 2;
+          disc.position.set(spot.z - 0.0012, spot.y, spot.x);
+        }
         group.add(disc);
       }
     },

@@ -130,7 +130,7 @@ export function buildBench(scene) {
   return { root, laser: buildLaser(root) };
 }
 
-function buildLaser(root) {
+export function buildLaser(root) {
   const group = new THREE.Group();
   group.name = 'laser';
   const body = cylinderX(0.02, 0.16, SHARED.laserBody);
@@ -317,12 +317,12 @@ function buildLens() {
 
 // The card texture: the computed light over the whole card (image row 0 is the top), upscaled, with the target
 // paper printed over it.
-function paintCard(ctx, light, image, target) {
+function paintCard(ctx, light, image, target, pixel) {
   const { size, centreHeight, cardPixels } = CONFIG.screen;
   const lightCtx = light.getContext('2d');
   const data = lightCtx.createImageData(cardPixels, cardPixels);
   for (let i = 0; i < cardPixels * cardPixels; i++) {
-    const [r, g, b] = cardPixel(image ? image[i] : 0);
+    const [r, g, b] = pixel(image ? image[i] : 0);
     data.data[4 * i] = r;
     data.data[4 * i + 1] = g;
     data.data[4 * i + 2] = b;
@@ -335,7 +335,8 @@ function paintCard(ctx, light, image, target) {
   drawTarget(ctx, { centre: target, left: -size / 2, top: centreHeight + size / 2, scale: width / size, lineWidth: 1.5, font: 11 });
 }
 
-function buildScreen() {
+// The screen card; `pixel` turns an image value into a colour (Experiment 1: relative intensity on the log curve).
+export function createScreenModel({ pixel = cardPixel } = {}) {
   const materials = partMaterials();
   const group = new THREE.Group();
   const { size, centreHeight, cardPixels, cardTexture } = CONFIG.screen;
@@ -349,7 +350,7 @@ function buildScreen() {
   texture.colorSpace = THREE.SRGBColorSpace;
   // Without a target centre (e.g. in tests) the target paper sits in the middle of the card.
   const paint = (image, target) => {
-    paintCard(canvas.getContext('2d'), light, image, target ?? { x: 0, y: centreHeight });
+    paintCard(canvas.getContext('2d'), light, image, target ?? { x: 0, y: centreHeight }, pixel);
     texture.needsUpdate = true;
   };
   paint(null, null);
@@ -377,7 +378,7 @@ function buildScreen() {
   };
 }
 
-const BUILDERS = { a1: buildIris, a2: buildIris, sf: buildSpatialFilter, lens: buildLens, screen: buildScreen };
+const BUILDERS = { a1: buildIris, a2: buildIris, sf: buildSpatialFilter, lens: buildLens, screen: () => createScreenModel() };
 
 export function createPartModel(id) {
   const part = BUILDERS[id]();

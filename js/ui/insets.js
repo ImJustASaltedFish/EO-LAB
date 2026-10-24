@@ -29,13 +29,14 @@ function drawMessage(ctx, width, height, message) {
   ctx.textAlign = 'start';
 }
 
-// An iris or ring face: plate, hole and the beam's light where it lands (metres, relative to the hole centre).
-// Brightness uses a square-root curve rather than the screen's log curve, so the brightest part of a beam that
-// overfills the plate (the expanded beam in step 2b) still shows where its centre is.
-export function drawApertureInset(canvas, { r, outer, beam }) {
+// An iris or ring face: plate, hole and the light of one `beam` or several labelled `beams` where they land
+// (metres, relative to the hole centre). Brightness uses a square-root curve rather than the screen's log curve, so
+// the brightest part of a beam that overfills the plate (the expanded beam in step 2b) still shows where its centre is.
+export function drawApertureInset(canvas, { r, outer, beam = null, beams = beam ? [beam] : [] }) {
   const ctx = canvas.getContext('2d');
   const { width, height } = canvas;
-  const half = Math.min(0.04, Math.max(0.003, 2.5 * r, beam ? 1.6 * (Math.hypot(beam.dx, beam.dy) + beam.radius) : 0));
+  const reach = Math.max(0, ...beams.map((b) => 1.6 * (Math.hypot(b.dx, b.dy) + b.radius)));
+  const half = Math.min(0.04, Math.max(0.003, 2.5 * r, reach));
   const scale = width / (2 * half);
   const image = ctx.createImageData(width, height);
   for (let j = 0; j < height; j++) {
@@ -45,13 +46,13 @@ export function drawApertureInset(canvas, { r, outer, beam }) {
       const rho = Math.hypot(x, y);
       const base = rho <= r ? [8, 8, 10] : rho <= outer ? [52, 55, 61] : [18, 20, 24];
       let light = 0;
-      if (beam) {
-        const dx = x - beam.dx;
-        const dy = y - beam.dy;
-        light = Math.exp((-2 * (dx * dx + dy * dy)) / (beam.radius * beam.radius));
-        if (rho <= r) light *= 0.25;          // light going through the hole barely shows on this face
-        else if (rho > outer) light *= 0.1;
+      for (const b of beams) {
+        const dx = x - b.dx;
+        const dy = y - b.dy;
+        light += Math.exp((-2 * (dx * dx + dy * dy)) / (b.radius * b.radius));
       }
+      if (rho <= r) light *= 0.25;            // light going through the hole barely shows on this face
+      else if (rho > outer) light *= 0.1;
       const [lr, lg, lb] = beamColour(Math.sqrt(Math.min(1, light)));
       const k = 4 * (j * width + i);
       image.data[k] = Math.min(255, base[0] + lr);
@@ -66,6 +67,11 @@ export function drawApertureInset(canvas, { r, outer, beam }) {
   ctx.beginPath();
   ctx.arc(width / 2, height / 2, Math.max(1, r * scale), 0, 2 * Math.PI);
   ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = 'bold 11px system-ui, sans-serif';
+  for (const b of beams) {
+    if (b.label) ctx.fillText(b.label, width / 2 + b.dx * scale + 5, height / 2 - b.dy * scale - 5);
+  }
   drawScaleBar(ctx, width, height, half);
 }
 
@@ -111,7 +117,7 @@ function scratchCanvas(pixels) {
 
 // The computed screen image with a mm ruler and the target paper. `target` (the target centre) and `mark` (the
 // step-2a mark) are in rail coordinates, or null.
-export function drawScreenInset(canvas, screen, { mark = null, target = null, noLightText = '—' } = {}) {
+export function drawScreenInset(canvas, screen, { mark = null, target = null, noLightText = '—', pixel = cardPixel } = {}) {
   const ctx = canvas.getContext('2d');
   const { width, height } = canvas;
   ctx.fillStyle = '#0e1013';
@@ -125,7 +131,7 @@ export function drawScreenInset(canvas, screen, { mark = null, target = null, no
   const offCtx = off.getContext('2d');
   const data = offCtx.createImageData(pixels, pixels);
   for (let i = 0; i < pixels * pixels; i++) {
-    const [r, g, b] = cardPixel(image[i]);
+    const [r, g, b] = pixel(image[i]);
     data.data[4 * i] = r;
     data.data[4 * i + 1] = g;
     data.data[4 * i + 2] = b;
