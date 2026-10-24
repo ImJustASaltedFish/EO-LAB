@@ -1,7 +1,7 @@
 # EO LAB Web — Michelson Interferometer Design
 
 - **Date:** 2026-10-24
-- **Status:** approved section by section in brainstorming; awaiting review of this written spec
+- **Status:** approved; built on branch `feat/michelson` (see `docs/superpowers/plans/2026-10-24-eo-lab-web-michelson.md`)
 - **Scope:** the Michelson experiment page and the lobby card that opens it. Experiment 1 (`docs/superpowers/specs/2026-10-17-eo-lab-web-experiment-1-design.md`) is the reference for everything this spec does not change.
 
 ## 1. Background and goal
@@ -126,7 +126,7 @@ Checks are evaluated continuously; 下一步 Next is enabled while all of the cu
 
 ### 3.6 Tips when lost
 
-The 提示 Hint button first shows a **tip about what is wrong right now**, computed from the bench, then the step's general hints one at a time. After the last hint a 版面參考 **Layout guide** toggle draws the standard arrangement as faint outlines on the table: beam splitter at z = 300 mm on row x = 0 (reflecting toward +x), M1 at z = 500 mm on row x = 0, M2 at x = +200 mm on row z = 300 mm, screen at x = −250 mm on row z = 300 mm, and in step 4 the lenses 100 mm from each mirror. The first matching tip is shown, for example:
+The 提示 Hint button first shows a **tip about what is wrong right now**, computed from the bench, then the step's general hints one at a time. After the last hint a 版面參考 **Layout guide** toggle draws the standard arrangement as faint outlines on the table: beam splitter at z = 300 mm on row x = 0 (reflecting toward +x), M1 at z = 500 mm on row x = 0, M2 at x = +200 mm on row z = 300 mm, screen at x = −250 mm on row z = 300 mm, and in step 4 the lenses 100 mm from each mirror. In step 1 the screen's guide position is the alignment card on the reflected row instead (x = +100 mm on row z = 300 mm, facing the beam splitter); from step 2 it is the output position. The panel's Place button uses the same positions. The first matching tip is shown, for example:
 
 | Step | Situation | Tip (zh) |
 |---|---|---|
@@ -214,7 +214,7 @@ Each beam is traced as a centre ray in 3D, starting at the iris, (x, y, z) = (0,
 - **Mirror:** reflection; a tilt error ε turns the beam by 2ε.
 - **Lens:** thin-lens deflection of the direction by −(p − c)/f in the lens plane (paraxial), where p is the hit point and c the lens centre.
 - **Screen:** the ray stops; its hit point is recorded in card coordinates (u to the right and v up as seen facing the card).
-- **Iris (returning rays):** the ray stops on the iris plane; its offset from the hole centre is recorded for the iris close-up. Light through the hole returns into the laser and is not traced further.
+- **Iris and source face (returning rays):** the ray stops on the source face, a 60 mm square around the iris; its offset from the hole centre is recorded for the iris close-up, which draws the whole face, so a spot that misses the iris itself (a mirror up to 1° off in both tilts) still shows. Light through the hole returns into the laser and is not traced further.
 - Rays also stop when they leave the breadboard, fall below 1 % power, or after 8 interactions.
 - Each ray keeps its optical path length from the beam-splitter split point (for the arms) and its path signature.
 
@@ -293,8 +293,14 @@ Changed, backward-compatibly:
 - `js/ui/insets.js` — the iris close-up takes several labelled beams (the single `beam` form keeps working).
 - `js/i18n/zh-TW.js`, `en.js` — the Michelson strings (`lobby.michelson.*`, `step.mi*.*`, `question.mi*`, `tip.mi*`, `warning.mi*`, `control.mi.*`, `readout.mi.*`).
 - `js/optics/rng.js` — a new salt for the hand errors.
+- `js/optics/screen.js` — `brightPixel` (a card lit with no tone curve, for the fringes).
+- `js/ui/panel.js` — `renderTip` (the tip line under the hint button).
+- `js/scene/view.js` — custom camera presets and a world point to look at.
+- `js/scene/models.js` — `createScreenModel` with a pixel mapping; `buildLaser` exported.
+- `css/style.css` — the tip line, the placement buttons, and the close-up toggles on a line of their own on narrow screens.
+- `tests/page.js` — the iframe page loader, shared by the two page tests.
 
-Reused unchanged: `js/optics/{config,gaussian,iris,screen,rng}.js`, `js/ui/{panel,controls,toast,clock,target}.js`, `js/scene/{view,webgl}.js` and the Experiment 1 part models.
+Reused unchanged: `js/optics/{config,gaussian,iris}.js`, `js/ui/{controls,toast,clock,target}.js`, `js/scene/{interact,webgl}.js` and the Experiment 1 part models.
 
 **Data flow:** as Experiment 1: UI or 3D input → `state.js` → `michelsonBench(state)` → scene, close-ups, panel, checks. `steps.js` evaluates checks from (state, result, flow), warnings from (flow, previous state, state, result), and records card trials from each result.
 
