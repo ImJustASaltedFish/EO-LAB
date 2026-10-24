@@ -63,6 +63,25 @@ test('controls: slider and button report changes', () => {
   button.el.remove();
 });
 
+test('controls: a repeating button acts on press, repeats while held, and acts once on a keyboard or script click', async () => {
+  let count = 0;
+  const button = createButton({ label: 'Move', onClick: () => { count += 1; }, repeat: true });
+  sandbox().appendChild(button.el);
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  button.el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  assertEqual(count, 1, 'acts on press');
+  await wait(900);
+  button.el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+  assert(count >= 2, `repeats while held: ${count}`);
+  const held = count;
+  button.el.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+  await wait(200);
+  assertEqual(count, held, 'stops on release; the click ending the press does not act again');
+  button.el.click();
+  assertEqual(count, held + 1, 'a click without a press acts once');
+  button.el.remove();
+});
+
 test('controls: position control accepts typed millimetres and ± steps', () => {
   const seen = [];
   const pos = createPositionControl({ label: 'z', value: 0.1, fine: 0.001, coarse: 0.01, onChange: (z) => seen.push(z), labels });

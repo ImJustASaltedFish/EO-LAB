@@ -62,6 +62,15 @@ test('tracer: rays stop on screens, stops, mounts and the table edge, and after 
   assert(bounced.length === 4, `three reflections, then the limit: ${bounced.length}`);
 });
 
+test('tracer: a part whose mount is no larger than its aperture lets rays outside it pass by', () => {
+  const lens = { id: 'L', kind: 'lens', position: { x: 0, y: 0.1, z: 0.2 }, normal: { x: 0, y: 0, z: 1 }, shape: 'disc', aperture: 0.011, mount: 0.011, focalLength: 0.2 };
+  const screen = { id: 'screen', kind: 'screen', position: { x: 0, y: 0.1, z: 0.6 }, normal: { x: 0, y: 0, z: -1 }, shape: 'square', aperture: 0.075, mount: 0.078 };
+  const beside = trace(source({ origin: { x: 0.0105, y: 0.1105, z: 0 } }), [lens, screen], { bounds: BOUNDS });
+  assertEqual(beside[0].stop.kind, 'screen', 'outside the round lens, inside its square: passes by');
+  const through = trace(source({ origin: { x: 0.005, y: 0.1, z: 0 } }), [lens, screen], { bounds: BOUNDS });
+  assertEqual(through[0].stop.kind, 'lens');
+});
+
 test('tracer: surface axes are right-handed with v up', () => {
   const { u, v } = surfaceAxes({ x: 0, y: 0, z: -1 });
   assertClose(u.x, 1, 1e-12);

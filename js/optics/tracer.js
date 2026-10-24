@@ -44,6 +44,7 @@ function nearestHit(ray, elements) {
     const v = dot(local, axes.v);
     if (Math.max(Math.abs(u), Math.abs(v)) > el.mount) continue;
     const inside = el.shape === 'square' ? Math.max(Math.abs(u), Math.abs(v)) <= el.aperture : Math.hypot(u, v) <= el.aperture;
+    if (!inside && el.mount <= el.aperture) continue;   // no mount around it: the ray passes by
     best = { el, t, local, inside };
   }
   return best;
