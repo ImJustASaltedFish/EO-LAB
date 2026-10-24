@@ -11,6 +11,7 @@ import './optics/interference.test.js';
 import './lab/state.test.js';
 import './optics/bench.test.js';
 import './lab/steps.test.js';
+import './michelson/state.test.js';
 import './i18n.test.js';
 import './scene/scene.test.js';
 import './scene/beam-interact.test.js';
