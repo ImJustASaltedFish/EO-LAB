@@ -9,10 +9,21 @@ import { interferenceSampler, fringeNumbers, profile } from '../optics/interfere
 import { PART_IDS, KINDS, headingVector } from './state.js';
 
 const T = MI.table;
+const SRC = MI.source;
 const BOUNDS = { xMin: T.xMin, xMax: T.xMax, zMin: T.zMin, zMax: T.zMax };
-const ORIGIN = { x: 0, y: MI.beamHeight, z: MI.source.irisZ };
-// Light coming back lands on the iris and the source face around it (60 mm), where students see the reflected spots.
-const IRIS = { id: 'iris', kind: 'stop', position: ORIGIN, normal: { x: 0, y: 0, z: 1 }, shape: 'square', aperture: MI.source.stopHalf, mount: MI.source.stopHalf };
+const ALONG = { x: 0, y: 0, z: 1 };
+const onAxis = (z) => ({ x: 0, y: MI.beamHeight, z });
+// Experiment 1's collimating lens. Light coming back through it converges toward the pinhole; light coming back
+// beside it carries on (the model gives it no mount).
+const LENS_RADIUS = CONFIG.lens.clearAperture / 2;
+const SOURCE_LENS = {
+  id: 'sourceLens', kind: 'lens', position: onAxis(SRC.lensZ), normal: ALONG, shape: 'disc',
+  aperture: LENS_RADIUS, mount: LENS_RADIUS, focalLength: CONFIG.lens.focalLength,
+};
+// Light coming back lands on Aperture 1 and the source face around it (60 mm), where students see the reflected spots.
+const IRIS = { id: 'iris', kind: 'stop', position: onAxis(SRC.a1Z), normal: ALONG, shape: 'square', aperture: SRC.stopHalf, mount: SRC.stopHalf };
+// The cone from the pinhole is this many times wider on the lens than on Aperture 1 (2: Aperture 1 sits halfway).
+const SPREAD = (SRC.lensZ - SRC.pinholeZ) / (SRC.a1Z - SRC.pinholeZ);
 // Screen images use card coordinates: u across the card, and height above the table (the card centre is at beam height).
 const CARD_CENTRE = { x: 0, y: MI.beamHeight };
 
@@ -46,6 +57,29 @@ function elementOf(pose) {
   if (pose.kind === 'mirror') return { ...base, kind: 'mirror', aperture: MI.mirror.radius, mount: MI.mirror.mountHalf };
   if (pose.kind === 'lens') return { ...base, kind: 'lens', aperture: MI.lens.radius, mount: MI.lens.mountHalf, focalLength: MI.lens.focalLength };
   return { ...base, kind: 'screen', shape: 'square', aperture: MI.screen.size / 2, mount: MI.screen.size / 2 + 0.003 };
+}
+
+// Horizontal distance from the beam splitter's centre to a part (M1 with its stage); null unless both are placed.
+export function distanceToBs(state, id) {
+  if (!state.parts.bs.placed || !state.parts[id].placed) return null;
+  const a = poseOf(state, 'bs').position;
+  const b = poseOf(state, id).position;
+  return Math.hypot(b.x - a.x, b.z - a.z);
+}
+
+// The source as Experiment 1 leaves it, drawn (not traced): the laser beam into the objective, its focus on the
+// pinhole, the cone opening to Aperture 1, and the part of it Aperture 1 lets through, opening to the lens.
+function sourceSegments(opening) {
+  const piece = (z0, z1, r0, r1) => ({ z0, x0: 0, y0: MI.beamHeight, z1, x1: 0, y1: MI.beamHeight, r0, r1, power: 1 });
+  const objectiveZ = SRC.pinholeZ - CONFIG.objective.focalLength;
+  const onA1 = SRC.waistRadius / SPREAD;
+  const through = Math.min(onA1, opening / 2);
+  return [
+    piece(SRC.laserZ, objectiveZ, CONFIG.laser.waistRadius, CONFIG.laser.waistRadius),
+    piece(objectiveZ, SRC.pinholeZ, CONFIG.laser.waistRadius, MI.trace.minSpot),
+    piece(SRC.pinholeZ, SRC.a1Z, MI.trace.minSpot, onA1),
+    piece(SRC.a1Z, SRC.lensZ, through, SPREAD * through),
+  ];
 }
 
 const mirrorOf = (path) => path.find((tag) => KINDS[tag] === 'mirror') ?? null;
@@ -99,20 +133,21 @@ function emptyResult(state) {
 export function michelsonBench(state, { render = true, tapPhase = 0 } = {}) {
   const result = emptyResult(state);
   if (!state.laser.on) return result;
-  const aperture = state.iris.opening / 2;
-  const source = { waist: MI.source.waistRadius, aperture };
-  const irisT = gaussianThroughHole(MI.source.waistRadius, 0, aperture);
-  const elements = [IRIS, ...PART_IDS.filter((id) => state.parts[id].placed).map((id) => elementOf(poseOf(state, id)))];
-  const rays = trace({ origin: ORIGIN, direction: { x: 0, y: 0, z: 1 }, power: 1, from: 'iris' }, elements,
+  // The collimated beam: Aperture 1's hole, seen from the pinhole, spread to the lens and cut by its rim.
+  const aperture = Math.min((SPREAD * state.iris.opening) / 2, LENS_RADIUS);
+  const source = { waist: SRC.waistRadius, aperture };
+  const irisT = gaussianThroughHole(SRC.waistRadius, 0, aperture);
+  const placed = PART_IDS.filter((id) => state.parts[id].placed).map((id) => elementOf(poseOf(state, id)));
+  const rays = trace({ origin: SOURCE_LENS.position, direction: ALONG, power: 1, from: SOURCE_LENS.id }, [SOURCE_LENS, IRIS, ...placed],
     { maxInteractions: MI.trace.maxInteractions, minPower: MI.trace.minPower, bounds: BOUNDS });
-  const drawn = (A) => Math.max(Math.abs(A) * Math.min(aperture, MI.source.waistRadius), MI.trace.minSpot);
+  const drawn = (A) => Math.max(Math.abs(A) * Math.min(aperture, SRC.waistRadius), MI.trace.minSpot);
 
   result.rays = rays;
   result.irisT = irisT;
-  result.segments = rays.map((r) => ({
+  result.segments = [...sourceSegments(state.iris.opening), ...rays.map((r) => ({
     z0: r.start.z, x0: r.start.x, y0: r.start.y, z1: r.end.z, x1: r.end.x, y1: r.end.y,
     r0: drawn(r.matrix0.A), r1: drawn(r.matrix1.A), power: r.power,
-  }));
+  }))];
   result.spots = rays.filter((r) => ['screen', 'stop', 'mount'].includes(r.stop.kind))
     .map((r) => ({ x: r.end.x, y: r.end.y, z: r.end.z, radius: drawn(r.matrix1.A), power: r.power, normal: r.stop.normal }));
 

@@ -44,9 +44,9 @@ test('i18n: every key the Michelson steps, tips and warnings use exists', () => 
     step.insets.forEach((id) => need(`inset.${id}`));
     need(`ui.camera.${step.camera}`);
   }
-  ['tip.mi1.bsOffBeam', 'tip.mi1.reflectedOff', 'tip.mi1.card', 'tip.mi2.mirrorOff', 'tip.mi2.arms', 'tip.mi2.spotOffH',
-    'tip.mi2.spotOffV', 'tip.mi3.fine', 'tip.mi3.parallel', 'tip.mi3.contrast', 'tip.mi4.lensFar', 'tip.mi4.same',
-    'warning.miBs', 'warning.miStage', 'warning.m5'].forEach(need);
+  ['tip.mi1.bsOffBeam', 'tip.mi1.reflectedOff', 'tip.mi1.card', 'tip.mi2.cardInArm', 'tip.mi2.mirrorOff', 'tip.mi2.armLength',
+    'tip.mi2.spotLost', 'tip.mi2.spotOffH', 'tip.mi2.spotOffV', 'tip.mi3.fine', 'tip.mi3.parallel', 'tip.mi3.contrast',
+    'tip.mi4.lensFar', 'tip.mi4.same', 'warning.miBs', 'warning.miStage', 'warning.m5', 'readout.mi.toBs'].forEach(need);
   ['bs', 'm1', 'm2', 'screen', 'lens1', 'lens2', 'source'].forEach((id) => need(`part.${id}`));
   assertEqual(missing.join(', '), '', 'missing keys');
 });

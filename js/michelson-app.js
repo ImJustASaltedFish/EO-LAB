@@ -2,7 +2,7 @@
 import { MI } from './michelson/config.js';
 import { randomSeed } from './optics/rng.js';
 import { brightPixel } from './optics/screen.js';
-import { michelsonBench } from './michelson/bench.js';
+import { michelsonBench, distanceToBs } from './michelson/bench.js';
 import * as S from './michelson/state.js';
 import * as F from './michelson/steps.js';
 import { tipFor } from './michelson/tips.js';
@@ -41,7 +41,7 @@ const PRESETS = {
     position: [0.25, 1.05, 1.0], target: [0.2, 0.05, 0], halfWidth: 0.75,
     portrait: { position: [-0.55, 0.8, 0.55], target: [0.25, 0.05, 0], halfWidth: 0 },
   },
-  source: { position: [0.15, 0.3, 0.35], target: [-0.08, 0.1, 0], halfWidth: 0.18 },
+  source: { position: [0.01, 0.3, 0.35], target: [-0.22, 0.1, 0], halfWidth: 0.27 },   // laser to lens
   bs: { position: [0.5, 0.35, 0.4], target: [0.3, 0.1, 0], halfWidth: 0.2 },
   screen: { position: [0.42, 0.28, 0.2], target: [0.3, 0.1, -0.25], halfWidth: 0.12 },
 };
@@ -275,8 +275,8 @@ function placeFromPanel(id) {
     warnLocked(id);
     return;
   }
-  const guide = F.guideFor(id, F.currentStep(flow).id);
-  update(S.placeNear(state, id, guide.pos, guide.heading));
+  const spot = F.placeFor(id, F.currentStep(flow).id);
+  update(S.placeNear(state, id, spot.pos, spot.heading));
 }
 
 function placementGroup(id) {
@@ -287,17 +287,18 @@ function placementGroup(id) {
   label.className = 'control-label';
   const row = document.createElement('div');
   row.className = 'place-row';
-  const button = (key, control, onClick) => {
-    const widget = createButton({ label: () => t(key), onClick });
+  const button = (key, control, onClick, repeat = false) => {
+    const widget = createButton({ label: () => t(key), onClick, repeat });
     widget.el.dataset.control = `${id}.${control}`;
     return widget;
   };
   const add = button('control.mi.place', 'add', () => placeFromPanel(id));
   const moves = [
-    button('control.mi.towardLaser', 'towardLaser', () => update(S.movePartBy(state, id, -moveSteps(id).dz, 0))),
-    button('control.mi.awayLaser', 'awayLaser', () => update(S.movePartBy(state, id, moveSteps(id).dz, 0))),
-    button('control.mi.back', 'back', () => update(S.movePartBy(state, id, 0, -moveSteps(id).dx))),
-    button('control.mi.front', 'front', () => update(S.movePartBy(state, id, 0, moveSteps(id).dx))),
+    // Moves repeat while held, so a lens can slide many millimetres along its row.
+    button('control.mi.towardLaser', 'towardLaser', () => update(S.movePartBy(state, id, -moveSteps(id).dz, 0)), true),
+    button('control.mi.awayLaser', 'awayLaser', () => update(S.movePartBy(state, id, moveSteps(id).dz, 0)), true),
+    button('control.mi.back', 'back', () => update(S.movePartBy(state, id, 0, -moveSteps(id).dx)), true),
+    button('control.mi.front', 'front', () => update(S.movePartBy(state, id, 0, moveSteps(id).dx)), true),
     button('control.mi.turnLeft', 'turnLeft', () => update(S.turnPart(state, id, -1))),
     button('control.mi.turnRight', 'turnRight', () => update(S.turnPart(state, id, 1))),
     button('ui.remove', 'remove', () => update(S.removePart(state, id))),
@@ -416,6 +417,11 @@ function readouts() {
   ];
   if (state.parts.lens1.placed || state.parts.lens2.placed) {
     items.push({ label: t('readout.mi.rings'), value: f ? String(Math.floor(f.rings)) : none });
+  }
+  // How far each mirror and lens stands from the beam splitter (mirrors belong at 300 mm, lenses about 200 mm).
+  for (const id of ['m1', 'm2', 'lens1', 'lens2']) {
+    const d = distanceToBs(state, id);
+    if (d !== null) items.push({ label: t('readout.mi.toBs', { part: t(`part.${id}`) }), value: `${(d * 1e3).toFixed(0)} mm` });
   }
   return items;
 }

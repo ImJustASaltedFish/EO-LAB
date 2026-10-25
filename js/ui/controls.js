@@ -4,8 +4,8 @@ const REPEAT_INTERVAL = 70;
 
 const textOf = (label) => (typeof label === 'function' ? label() : label);
 
-// Press-and-hold repeats `action`; Enter/Space trigger it once from the keyboard.
-function holdRepeat(button, action) {
+// Press-and-hold repeats `action`; Enter/Space trigger it once from the keyboard (unless `keyboard` is false).
+function holdRepeat(button, action, { keyboard = true } = {}) {
   let timer = null;
   let interval = null;
   const stop = () => {
@@ -23,6 +23,7 @@ function holdRepeat(button, action) {
     }, REPEAT_DELAY);
   });
   for (const type of ['pointerup', 'pointerleave', 'pointercancel']) button.addEventListener(type, stop);
+  if (!keyboard) return;
   button.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -170,14 +171,23 @@ export function createSlider({ label, unit = '', value, min, max, step, format =
   };
 }
 
-export function createButton({ label, onClick, className = '' }) {
+// `repeat`: pressing and holding repeats onClick; a click that no press started (the keyboard, or click() from a
+// script) acts once.
+export function createButton({ label, onClick, className = '', repeat = false }) {
   const el = document.createElement('button');
   el.type = 'button';
   el.className = `control button ${className}`.trim();
   const render = () => {
     el.textContent = textOf(label);
   };
-  el.addEventListener('click', () => onClick());
+  if (repeat) {
+    holdRepeat(el, onClick, { keyboard: false });
+    el.addEventListener('click', (event) => {
+      if (event.detail === 0) onClick();
+    });
+  } else {
+    el.addEventListener('click', () => onClick());
+  }
   render();
   return {
     el,
